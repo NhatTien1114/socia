@@ -18,3 +18,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+app:
+  jwt:
+    # HS512 requires a secret of at least 64 bytes. Set JWT_SECRET outside local development.
+    secret: ${JWT_SECRET:change-this-development-secret-to-a-secure-value-with-at-least-64-bytes}
+    issuer: ${JWT_ISSUER:socia}

@@ -39,7 +39,9 @@ public class User {
     Sex sex;
 
     boolean isActive;
-    Role role;
+
+    @Builder.Default
+    Role role = Role.USER;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
