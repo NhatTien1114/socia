@@ -1,6 +1,7 @@
 package com.socia.demo.User.service;
 
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -15,15 +16,22 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.socia.demo.Enum.Role;
+import com.socia.demo.User.dtos.request.IntrospectRequest;
 import com.socia.demo.User.dtos.request.LoginRequest;
 import com.socia.demo.User.dtos.request.RegisterRequest;
 import com.socia.demo.User.dtos.response.AuthenticationResponse;
+import com.socia.demo.User.dtos.response.IntrospectResponse;
 import com.socia.demo.User.model.User;
 import com.socia.demo.User.repository.UserRepository;
+import com.socia.demo.exception.AppException;
+import com.socia.demo.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +43,20 @@ public class AuthenticationService {
     private final UserRepository userRepository;
 
     @Value("${app.jwt.secret}")
-    private String jwtSecret;
+    String jwtSecret;
 
     @Value("${app.jwt.issuer:socia}")
     private String jwtIssuer;
+
+    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
+        boolean isValid = true;
+        try {
+            verify(request.getToken());
+        } catch (AppException e) {
+            isValid = false;
+        }
+        return IntrospectResponse.builder().valid(isValid).build();
+    }
 
     public AuthenticationResponse login(LoginRequest loginRequest) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
@@ -95,5 +113,18 @@ public class AuthenticationService {
             log.error("Unable to generate JWT for user {}", user.getUsername(), exception);
             throw new IllegalStateException("Unable to generate authentication token", exception);
         }
+    }
+
+    private SignedJWT verify(String token) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(jwtSecret.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        var verify = signedJWT.verify(verifier);
+
+        if (!(verify && expiryTime.after(new Date())))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
     }
 }
