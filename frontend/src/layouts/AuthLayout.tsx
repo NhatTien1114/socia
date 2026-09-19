@@ -1,8 +1,11 @@
 import type { ReactNode } from 'react'
 
-type AuthPageProps = { mode: 'login' | 'register'; children: ReactNode }
+type AuthLayoutProps = {
+  mode: 'login' | 'register'
+  children: ReactNode
+}
 
-export function AuthPage({ mode, children }: AuthPageProps) {
+export function AuthLayout({ mode, children }: AuthLayoutProps) {
   const isLogin = mode === 'login'
   return (
     <main className="grid min-h-screen place-items-center bg-[#f5f7ff] p-4 sm:p-8">
@@ -28,9 +31,15 @@ export function AuthPage({ mode, children }: AuthPageProps) {
           <img className="absolute inset-0 z-0 m-auto size-full object-contain" src="/thumbnail.png" alt="Cộng đồng Socia" />
           <div className="absolute inset-0 z-10 bg-linear-to-br from-[#1f46b8]/55 via-[#0f2c7b]/10 to-[#211764]/50" />
           <div className="absolute inset-x-[9%] bottom-[9%] z-20 text-white">
-            <span className="mb-3 inline-flex rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold">Welcome to Socia</span>
-            <h2 className="m-0 mb-2 text-[29px] leading-[1.2] font-bold">{isLogin ? 'Mỗi kết nối đều có ý nghĩa.' : 'Cùng nhau tạo nên những kết nối.'}</h2>
-            <p className="m-0 max-w-[360px] text-sm leading-[1.55] text-white/80">Khám phá, chia sẻ và trò chuyện với cộng đồng của bạn.</p>
+            <span className="mb-3 inline-flex rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold">
+              Welcome to Socia
+            </span>
+            <h2 className="m-0 mb-2 text-[29px] leading-[1.2] font-bold">
+              {isLogin ? 'Mỗi kết nối đều có ý nghĩa.' : 'Cùng nhau tạo nên những kết nối.'}
+            </h2>
+            <p className="m-0 max-w-[360px] text-sm leading-[1.55] text-white/80">
+              Khám phá, chia sẻ và trò chuyện với cộng đồng của bạn.
+            </p>
           </div>
         </aside>
       </section>

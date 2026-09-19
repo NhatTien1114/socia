@@ -1,16 +1,11 @@
+import type {
+  ApiError,
+  AuthenticationResponse,
+  LoginPayload,
+  RegisterPayload,
+} from '@/features/auth/types/auth.types'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/socia/v1'
-
-type ApiError = { message?: string }
-
-export type LoginPayload = { username: string; password: string }
-export type RegisterPayload = {
-  username: string
-  password: string
-  phone?: string
-  sex?: 'MALE' | 'FEMALE'
-}
-
-type AuthenticationResponse = { message?: string; token?: string; authenticated?: boolean }
 
 async function request<T>(path: string, body: object): Promise<T> {
   let response: Response
@@ -29,10 +24,10 @@ async function request<T>(path: string, body: object): Promise<T> {
   return data
 }
 
-export async function login(payload: LoginPayload) {
+export async function login(payload: LoginPayload): Promise<AuthenticationResponse> {
   return request<AuthenticationResponse>('/auth/login', payload)
 }
 
-export async function register(payload: RegisterPayload) {
+export async function register(payload: RegisterPayload): Promise<AuthenticationResponse> {
   return request<AuthenticationResponse>('/auth/register', payload)
 }

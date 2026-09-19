@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,5 +6,45 @@
 }
 
 @layer base {
-  body { @apply m-0 min-w-80 bg-[#f5f7ff] font-sans text-[#273452] antialiased; }
+  html, body, #root { height: 100%; }
+  body { @apply m-0 min-w-80 bg-[#f5f7ff] font-sans text-[#273452] antialiased; overflow: hidden; }
+}
+
+/* ─── Custom scrollbar ────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 5px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45);
+  }
+
+  .scrollbar-dark {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 5px;
+  }
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
 }
