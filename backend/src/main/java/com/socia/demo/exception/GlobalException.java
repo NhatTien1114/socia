@@ -16,14 +16,15 @@ import jakarta.validation.ConstraintViolation;
 @Slf4j
 public class GlobalException {
 
-    @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handleException(Exception e) {
-        log.error("Exception: ", e);
-        ApiResponse<Object> response = ApiResponse.builder()
-                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
-                .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
-                .build();
-        return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode().value()).body(response);
+    @ExceptionHandler(value = AppException.class)
+    ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        ApiResponse apiResponse = new ApiResponse();
+
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
@@ -37,15 +38,24 @@ public class GlobalException {
                         .build());
     }
 
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        ApiResponse apiResponse = new ApiResponse();
+    @ExceptionHandler(value = RuntimeException.class)
+    ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException e) {
+        log.error("RuntimeException: ", e);
+        ApiResponse<Object> response = ApiResponse.builder()
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
+                .message(e.getMessage() != null ? e.getMessage() : ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
 
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
-
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+    @ExceptionHandler(value = Exception.class)
+    ResponseEntity<ApiResponse> handleException(Exception e) {
+        log.error("Exception: ", e);
+        ApiResponse<Object> response = ApiResponse.builder()
+                .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
+                .message(e.getMessage() != null ? e.getMessage() : ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
+                .build();
+        return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode().value()).body(response);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

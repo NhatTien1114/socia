@@ -3,6 +3,8 @@ package com.socia.demo.User.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import com.socia.demo.Enum.Role;
@@ -21,6 +23,16 @@ import lombok.experimental.FieldDefaults;
 public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
+
+    private User getCurrentUser() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof Jwt jwt)) {
+            throw new RuntimeException("User is unauthenticated");
+        }
+        String username = jwt.getSubject();
+        return userRepository.getUserByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found: " + username));
+    }
 
     public UserResponse createUser(UserRequest userRequest) {
         User user = userMapper.toUser(userRequest);
@@ -58,4 +70,14 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserResponse> searchUsers(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        var currentUser = getCurrentUser();
+        List<User> users = userRepository.searchUsers(query.trim(), currentUser.getId());
+        return users.stream()
+                .map(userMapper::toUserResponse)
+                .toList();
+    }
 }

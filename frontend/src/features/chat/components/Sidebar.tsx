@@ -6,9 +6,10 @@ type Props = {
   conversations: Conversation[]
   activeId: string | null
   onSelect: (id: string) => void
+  onAddFriend: () => void
 }
 
-export function Sidebar({ conversations, activeId, onSelect }: Props) {
+export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Props) {
   const [search, setSearch] = useState('')
 
   const filtered = search.trim()
@@ -37,9 +38,9 @@ export function Sidebar({ conversations, activeId, onSelect }: Props) {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="px-4 pb-3">
-        <div className="flex items-center gap-2.5 rounded-xl bg-[#1a2540] px-3 py-2 transition focus-within:bg-[#1e2d4a] focus-within:ring-1 focus-within:ring-[#2858cf]/40">
+      {/* Search + Add Friend / Create Group icons */}
+      <div className="flex items-center gap-2 px-4 pb-3">
+        <div className="flex flex-1 items-center gap-2.5 rounded-xl bg-[#1a2540] px-3 py-2 transition focus-within:bg-[#1e2d4a] focus-within:ring-1 focus-within:ring-[#2858cf]/40">
           <svg className="size-4 shrink-0 text-[#546585]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -52,6 +53,31 @@ export function Sidebar({ conversations, activeId, onSelect }: Props) {
             className="w-full border-0 bg-transparent text-[13px] text-[#d1d9e8] outline-none placeholder:text-[#546585]"
           />
         </div>
+        {/* Add friend icon */}
+        <button
+          onClick={onAddFriend}
+          title="Thêm bạn"
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#1a2540] hover:text-[#60a5fa]"
+        >
+          <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="8.5" cy="7" r="4" />
+            <line x1="20" y1="8" x2="20" y2="14" />
+            <line x1="23" y1="11" x2="17" y2="11" />
+          </svg>
+        </button>
+        {/* Create group icon */}
+        <button
+          title="Tạo nhóm"
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#1a2540] hover:text-[#60a5fa]"
+        >
+          <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </button>
       </div>
 
       {/* Conversation list */}
