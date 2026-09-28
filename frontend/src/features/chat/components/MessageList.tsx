@@ -24,9 +24,11 @@ export function MessageList({ messages, participants }: Props) {
         <div key={date}>
           {/* Date separator */}
           <div className="my-5 flex items-center gap-3">
-            <div className="h-px flex-1 bg-[#e3e8f2]" />
-            <span className="shrink-0 text-[11px] font-medium text-[#9ca3af]">{formatDate(date)}</span>
-            <div className="h-px flex-1 bg-[#e3e8f2]" />
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--color-date-line)' }} />
+            <span className="shrink-0 text-[11px] font-medium" style={{ color: 'var(--color-date-text)' }}>
+              {formatDate(date)}
+            </span>
+            <div className="h-px flex-1" style={{ backgroundColor: 'var(--color-date-line)' }} />
           </div>
 
           {/* Messages */}

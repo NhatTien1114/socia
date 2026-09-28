@@ -23,15 +23,22 @@ export function NavBar({ activeTab, onTabChange }: Props) {
   ]
 
   return (
-    <nav className="flex h-full w-[72px] shrink-0 flex-col items-center bg-[#0b1120] py-5">
+    <nav
+      className="flex h-full w-[72px] shrink-0 flex-col items-center py-5"
+      style={{ backgroundColor: 'var(--color-navbar-bg)' }}
+    >
       {/* Avatar */}
       <div className="relative mb-6">
         <img
           src={currentUser.avatar}
           alt={currentUser.name}
-          className="size-10 rounded-full object-cover ring-2 ring-[#2858cf]/40"
+          className="size-10 rounded-full object-cover"
+          style={{ boxShadow: `0 0 0 2px var(--color-navbar-ring)` }}
         />
-        <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#0b1120] bg-[#22c55e]" />
+        <span
+          className="absolute bottom-0 right-0 size-2.5 rounded-full border-2"
+          style={{ borderColor: 'var(--color-navbar-online-border)', backgroundColor: 'var(--color-success)' }}
+        />
       </div>
 
       {/* Navigation tabs */}
@@ -41,11 +48,31 @@ export function NavBar({ activeTab, onTabChange }: Props) {
             key={id}
             onClick={() => onTabChange(id)}
             title={label}
-            className={`group flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 transition-all duration-200 ${
+            className="group flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 transition-all duration-200"
+            style={
               activeTab === id
-                ? 'bg-[#2858cf] text-white shadow-[0_4px_12px_rgba(40,88,207,0.35)]'
-                : 'bg-transparent text-[#546585] hover:bg-[#131f38] hover:text-[#94a3b8]'
-            }`}
+                ? {
+                    backgroundColor: 'var(--color-navbar-active)',
+                    color: '#fff',
+                    boxShadow: `0 4px 12px var(--color-navbar-active-shadow)`,
+                  }
+                : {
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-navbar-icon)',
+                  }
+            }
+            onMouseEnter={(e) => {
+              if (activeTab !== id) {
+                e.currentTarget.style.backgroundColor = 'var(--color-navbar-icon-hover-bg)'
+                e.currentTarget.style.color = 'var(--color-navbar-icon-hover)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== id) {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'var(--color-navbar-icon)'
+              }
+            }}
           >
             {icon}
           </button>
@@ -56,7 +83,16 @@ export function NavBar({ activeTab, onTabChange }: Props) {
       <button
         onClick={handleLogout}
         title="Đăng xuất"
-        className="flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#2a1520] hover:text-[#f87171]"
+        className="flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent transition-all duration-200"
+        style={{ color: 'var(--color-navbar-icon)' }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--color-logout-hover-bg)'
+          e.currentTarget.style.color = 'var(--color-logout-hover-text)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.color = 'var(--color-navbar-icon)'
+        }}
       >
         <LogoutIcon />
       </button>

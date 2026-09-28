@@ -8,6 +8,7 @@ import { InfoPanel } from '@/features/chat/components/InfoPanel'
 import { EmptyState } from '@/features/chat/components/EmptyState'
 import { FriendsPanel } from '@/features/friends/components/FriendsPanel'
 import { AddFriendModal } from '@/features/friends/components/AddFriendModal'
+import { SettingsPanel } from '@/features/chat/components/SettingsPanel'
 
 export function HomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('chat')
@@ -25,6 +26,9 @@ export function HomePage() {
       {activeTab === 'contacts' ? (
         /* Contacts: FriendsPanel takes up entire remaining space */
         <FriendsPanel />
+      ) : activeTab === 'settings' ? (
+        /* Settings panel */
+        <SettingsPanel />
       ) : (
         <>
           {/* Sidebar — conversation list */}
@@ -42,7 +46,7 @@ export function HomePage() {
           {activeConversation ? (
             <ChatArea conversation={activeConversation} onToggleInfo={() => setShowInfo(!showInfo)} />
           ) : (
-            <div className="flex min-w-0 flex-1 bg-[#f4f7ff]">
+            <div className="flex min-w-0 flex-1" style={{ backgroundColor: 'var(--color-chat-bg)' }}>
               <EmptyState />
             </div>
           )}

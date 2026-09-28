@@ -30,13 +30,34 @@ export function MessageInput() {
   }
 
   return (
-    <footer className="border-t border-[#e8ecf4] bg-white/80 px-5 py-3 backdrop-blur-sm">
+    <footer
+      className="px-5 py-3 backdrop-blur-sm"
+      style={{
+        backgroundColor: 'var(--color-input-bg)',
+        borderTop: '1px solid var(--color-input-border)',
+      }}
+    >
       {/* Attachment popup */}
       {showActions && (
         <div className="mb-3 flex gap-2 animate-in slide-in-from-bottom-2">
-          <AttachButton icon={<ImageIcon />} label="Ảnh" color="bg-[#8b5cf6]/10 text-[#8b5cf6] hover:bg-[#8b5cf6]/20" />
-          <AttachButton icon={<FileIcon />} label="File" color="bg-[#f59e0b]/10 text-[#f59e0b] hover:bg-[#f59e0b]/20" />
-          <AttachButton icon={<LocationIcon />} label="Vị trí" color="bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20" />
+          <AttachButton
+            icon={<ImageIcon />}
+            label="Ảnh"
+            bg="var(--color-attach-image-bg)"
+            text="var(--color-attach-image-text)"
+          />
+          <AttachButton
+            icon={<FileIcon />}
+            label="File"
+            bg="var(--color-attach-file-bg)"
+            text="var(--color-attach-file-text)"
+          />
+          <AttachButton
+            icon={<LocationIcon />}
+            label="Vị trí"
+            bg="var(--color-attach-location-bg)"
+            text="var(--color-attach-location-text)"
+          />
         </div>
       )}
 
@@ -45,10 +66,31 @@ export function MessageInput() {
         <button
           onClick={() => setShowActions(!showActions)}
           className={`flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 transition-all duration-200 ${
-            showActions
-              ? 'rotate-45 bg-[#2858cf]/10 text-[#2858cf]'
-              : 'bg-transparent text-[#8490aa] hover:bg-[#f0f4ff] hover:text-[#2858cf]'
+            showActions ? 'rotate-45' : ''
           }`}
+          style={
+            showActions
+              ? {
+                  backgroundColor: 'var(--color-input-attach-active-bg)',
+                  color: 'var(--color-input-attach-active)',
+                }
+              : {
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-input-icon)',
+                }
+          }
+          onMouseEnter={(e) => {
+            if (!showActions) {
+              e.currentTarget.style.backgroundColor = 'var(--color-input-icon-hover-bg)'
+              e.currentTarget.style.color = 'var(--color-input-icon-hover)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showActions) {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--color-input-icon)'
+            }
+          }}
         >
           <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -57,7 +99,13 @@ export function MessageInput() {
         </button>
 
         {/* Text input */}
-        <div className="flex min-h-[40px] flex-1 items-end rounded-2xl border border-[#e3e8f2] bg-[#fafbfe] px-3.5 py-2 transition-all duration-200 focus-within:border-[#2858cf]/40 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(40,88,207,0.08)]">
+        <div
+          className="flex min-h-[40px] flex-1 items-end rounded-2xl border px-3.5 py-2 transition-all duration-200"
+          style={{
+            backgroundColor: 'var(--color-input-field-bg)',
+            borderColor: 'var(--color-input-field-border)',
+          }}
+        >
           <textarea
             ref={textareaRef}
             value={text}
@@ -66,12 +114,26 @@ export function MessageInput() {
             onKeyDown={handleKeyDown}
             placeholder="Nhập tin nhắn..."
             rows={1}
-            className="max-h-[120px] w-full resize-none border-0 bg-transparent text-[13.5px] leading-snug text-[#273452] outline-none placeholder:text-[#a9b2c3]"
+            className="max-h-[120px] w-full resize-none border-0 bg-transparent text-[13.5px] leading-snug outline-none"
+            style={{
+              color: 'var(--color-input-text)',
+            }}
           />
         </div>
 
         {/* Emoji */}
-        <button className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent text-[#8490aa] transition-all duration-200 hover:bg-[#f0f4ff] hover:text-[#f59e0b]">
+        <button
+          className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent transition-all duration-200"
+          style={{ color: 'var(--color-input-icon)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-input-icon-hover-bg)'
+            e.currentTarget.style.color = 'var(--color-emoji-hover)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+            e.currentTarget.style.color = 'var(--color-input-icon)'
+          }}
+        >
           <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="12" r="10" />
             <path d="M8 14s1.5 2 4 2 4-2 4-2" />
@@ -84,16 +146,37 @@ export function MessageInput() {
         {text.trim() ? (
           <button
             onClick={handleSend}
-            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 bg-gradient-to-br from-[#2858cf] to-[#477cf0] text-white shadow-[0_4px_12px_rgba(40,88,207,0.3)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(40,88,207,0.4)]"
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 text-white transition-all duration-200"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-input-send-from), var(--color-input-send-to))',
+              boxShadow: '0 4px 12px var(--color-input-send-shadow)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 6px 16px var(--color-input-send-shadow-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px var(--color-input-send-shadow)'
+            }}
           >
             <svg className="size-[18px] translate-x-px" viewBox="0 0 24 24" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
           </button>
         ) : (
-          <button className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent text-[#8490aa] transition-all duration-200 hover:bg-[#f0f4ff] hover:text-[#ef4444]">
+          <button
+            className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent transition-all duration-200"
+            style={{ color: 'var(--color-input-icon)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-input-icon-hover-bg)'
+              e.currentTarget.style.color = 'var(--color-mic-hover-text)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--color-input-icon)'
+            }}
+          >
             <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
               <line x1="12" y1="19" x2="12" y2="23" />
               <line x1="8" y1="23" x2="16" y2="23" />
@@ -106,9 +189,12 @@ export function MessageInput() {
 }
 
 // ─── Attach popup buttons ────────────────────────────────────
-function AttachButton({ icon, label, color }: { icon: JSX.Element; label: string; color: string }) {
+function AttachButton({ icon, label, bg, text }: { icon: JSX.Element; label: string; bg: string; text: string }) {
   return (
-    <button className={`flex cursor-pointer items-center gap-2 rounded-xl border-0 px-3 py-2 text-[12.5px] font-medium transition-all duration-200 ${color}`}>
+    <button
+      className="flex cursor-pointer items-center gap-2 rounded-xl border-0 px-3 py-2 text-[12.5px] font-medium transition-all duration-200"
+      style={{ backgroundColor: bg, color: text }}
+    >
       {icon}
       {label}
     </button>

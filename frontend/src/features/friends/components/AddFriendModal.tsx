@@ -8,11 +8,11 @@ type Props = {
   onSuccess: () => void
 }
 
-function avatarUrl(name: string, bg = '2858cf') {
+function avatarUrl(name: string, bg = '756FB3') {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${bg}&color=fff&bold=true&size=128`
 }
 
-const AVATAR_COLORS = ['6366f1', '0891b2', 'db2777', '059669', 'c2410c', '4338ca', 'b91c1c', '7c3aed']
+const AVATAR_COLORS = ['756FB3', '514CB2', '9A95D0', '35A56A', 'E4A84C', '5D8CC9', 'D95C6A']
 function colorFromName(name: string): string {
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
@@ -83,19 +83,41 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-[10vh] backdrop-blur-sm"
-      style={{ animation: 'fadeIn 0.2s ease-out' }}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] backdrop-blur-sm"
+      style={{
+        backgroundColor: 'var(--color-modal-backdrop)',
+        animation: 'fadeIn 0.2s ease-out',
+      }}
     >
       <div
-        className="flex w-full max-w-[440px] flex-col rounded-2xl border border-[#1a2540] bg-[#0f1729] shadow-2xl"
-        style={{ animation: 'slideUp 0.25s ease-out', maxHeight: '75vh' }}
+        className="flex w-full max-w-[440px] flex-col rounded-2xl shadow-2xl"
+        style={{
+          backgroundColor: 'var(--color-modal-bg)',
+          border: '1px solid var(--color-modal-border)',
+          animation: 'slideUp 0.25s ease-out',
+          maxHeight: '75vh',
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#1a2540] px-5 py-4">
-          <h3 className="m-0 text-[16px] font-bold text-white">Thêm bạn</h3>
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid var(--color-modal-border)' }}
+        >
+          <h3 className="m-0 text-[16px] font-bold" style={{ color: 'var(--color-modal-title)' }}>
+            Thêm bạn
+          </h3>
           <button
             onClick={handleClose}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#1a2540] hover:text-white"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
+            style={{ color: 'var(--color-modal-close)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-modal-close-hover-bg)'
+              e.currentTarget.style.color = 'var(--color-modal-close-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--color-modal-close)'
+            }}
           >
             <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -105,9 +127,27 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
         </div>
 
         {/* Search input */}
-        <div className="border-b border-[#1a2540] px-5 py-4">
-          <div className="flex items-center gap-3 rounded-xl border border-[#1a2540] bg-[#0b1120] px-3.5 py-2.5 transition-all duration-200 focus-within:border-[#2858cf]/50 focus-within:ring-1 focus-within:ring-[#2858cf]/20">
-            <svg className="size-4 shrink-0 text-[#546585]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div
+          className="px-5 py-4"
+          style={{ borderBottom: '1px solid var(--color-modal-border)' }}
+        >
+          <div
+            className="flex items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-all duration-200"
+            style={{
+              backgroundColor: 'var(--color-modal-input-bg)',
+              borderColor: 'var(--color-modal-input-border)',
+            }}
+          >
+            <svg
+              className="size-4 shrink-0"
+              style={{ color: 'var(--color-modal-input-icon)' }}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
@@ -118,22 +158,39 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
               onKeyDown={handleKeyDown}
               placeholder="Nhập tên hoặc số điện thoại..."
               autoFocus
-              className="w-full border-0 bg-transparent text-[13.5px] text-[#d1d9e8] outline-none placeholder:text-[#3e4f6e]"
+              className="w-full border-0 bg-transparent text-[13.5px] outline-none"
+              style={{
+                color: 'var(--color-modal-input-text)',
+              }}
             />
           </div>
         </div>
 
         {/* Results area */}
-        <div className="scrollbar-dark flex-1 overflow-y-auto px-2.5 py-2">
+        <div className="scrollbar-thin flex-1 overflow-y-auto px-2.5 py-2">
           {loading && (
             <div className="flex flex-col items-center py-10">
-              <span className="inline-block size-6 animate-spin rounded-full border-2 border-[#2858cf]/20 border-t-[#2858cf]" />
-              <p className="mt-3 text-[12px] text-[#546585]">Đang tìm kiếm...</p>
+              <span
+                className="inline-block size-6 animate-spin rounded-full border-2"
+                style={{
+                  borderColor: 'var(--color-modal-spinner-track)',
+                  borderTopColor: 'var(--color-modal-spinner)',
+                }}
+              />
+              <p className="mt-3 text-[12px]" style={{ color: 'var(--color-modal-empty-text)' }}>
+                Đang tìm kiếm...
+              </p>
             </div>
           )}
 
           {!loading && error && (
-            <div className="mx-2.5 mt-2 flex items-center gap-2 rounded-xl bg-[#ef4444]/10 px-3.5 py-2.5 text-[12px] text-[#ef4444]">
+            <div
+              className="mx-2.5 mt-2 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[12px]"
+              style={{
+                backgroundColor: 'var(--color-modal-error-bg)',
+                color: 'var(--color-modal-error-text)',
+              }}
+            >
               <svg className="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
@@ -145,36 +202,50 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
 
           {!loading && searched && results.length === 0 && !error && (
             <div className="flex flex-col items-center py-10">
-              <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-[#1a2540]">
-                <svg className="size-6 text-[#546585]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div
+                className="mb-3 flex size-12 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: 'var(--color-modal-empty-bg)' }}
+              >
+                <svg className="size-6" style={{ color: 'var(--color-modal-empty-icon)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </div>
-              <p className="text-[13px] font-medium text-[#546585]">Không tìm thấy người dùng</p>
-              <p className="mt-1 text-[12px] text-[#3e4f6e]">Thử nhập chính xác tên hoặc số điện thoại</p>
+              <p className="text-[13px] font-medium" style={{ color: 'var(--color-modal-empty-text)' }}>
+                Không tìm thấy người dùng
+              </p>
+              <p className="mt-1 text-[12px]" style={{ color: 'var(--color-modal-empty-sub)' }}>
+                Thử nhập chính xác tên hoặc số điện thoại
+              </p>
             </div>
           )}
 
           {!loading && !searched && (
             <div className="flex flex-col items-center py-10">
-              <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-[#1a2540]">
-                <svg className="size-6 text-[#546585]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div
+                className="mb-3 flex size-12 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: 'var(--color-modal-empty-bg)' }}
+              >
+                <svg className="size-6" style={{ color: 'var(--color-modal-empty-icon)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="8.5" cy="7" r="4" />
                   <line x1="20" y1="8" x2="20" y2="14" />
                   <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
               </div>
-              <p className="text-[13px] font-medium text-[#546585]">Tìm bạn bè</p>
-              <p className="mt-1 text-[12px] text-[#3e4f6e]">Nhập tên hoặc số điện thoại rồi nhấn Enter</p>
+              <p className="text-[13px] font-medium" style={{ color: 'var(--color-modal-empty-text)' }}>
+                Tìm bạn bè
+              </p>
+              <p className="mt-1 text-[12px]" style={{ color: 'var(--color-modal-empty-sub)' }}>
+                Nhập tên hoặc số điện thoại rồi nhấn Enter
+              </p>
             </div>
           )}
 
           {/* Search results */}
           {!loading && results.length > 0 && (
             <div>
-              <p className="px-3 py-2 text-[11px] font-semibold tracking-wide text-[#546585] uppercase">
+              <p className="px-3 py-2 text-[11px] font-semibold tracking-wide uppercase" style={{ color: 'var(--color-modal-label)' }}>
                 Kết quả tìm kiếm
               </p>
               {results.map((user) => {
@@ -183,7 +254,13 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
                 return (
                   <div
                     key={user.id}
-                    className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200 hover:bg-[#131f38]"
+                    className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-modal-result-hover)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
                   >
                     <img
                       src={user.avatar || avatarUrl(user.username, colorFromName(user.username))}
@@ -191,11 +268,11 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
                       className="size-[44px] rounded-full object-cover"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="m-0 truncate text-[13.5px] font-semibold text-[#d1d9e8]">
+                      <p className="m-0 truncate text-[13.5px] font-semibold" style={{ color: 'var(--color-modal-result-name)' }}>
                         {user.username}
                       </p>
                       {user.phone && (
-                        <p className="m-0 mt-0.5 truncate text-[11.5px] text-[#546585]">
+                        <p className="m-0 mt-0.5 truncate text-[11.5px]" style={{ color: 'var(--color-modal-result-sub)' }}>
                           {user.phone}
                         </p>
                       )}
@@ -203,14 +280,38 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
                     <button
                       onClick={() => !isSent && handleSendRequest(user)}
                       disabled={isSent || isSending}
-                      className={`flex h-[32px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 text-[12px] font-semibold transition-all duration-200 ${
+                      className="flex h-[32px] shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 text-[12px] font-semibold transition-all duration-200 disabled:cursor-not-allowed"
+                      style={
                         isSent
-                          ? 'border-[#22c55e]/30 bg-[#22c55e]/10 text-[#22c55e] cursor-default'
-                          : 'border-[#2858cf]/40 bg-transparent text-[#60a5fa] hover:bg-[#2858cf] hover:border-[#2858cf] hover:text-white'
-                      } disabled:cursor-not-allowed`}
+                          ? {
+                              borderColor: 'var(--color-modal-sent-border)',
+                              backgroundColor: 'var(--color-modal-sent-bg)',
+                              color: 'var(--color-modal-sent-text)',
+                              cursor: 'default',
+                            }
+                          : {
+                              borderColor: 'var(--color-modal-add-border)',
+                              backgroundColor: 'transparent',
+                              color: 'var(--color-modal-add-text)',
+                            }
+                      }
+                      onMouseEnter={(e) => {
+                        if (!isSent && !isSending) {
+                          e.currentTarget.style.backgroundColor = 'var(--color-modal-add-hover-bg)'
+                          e.currentTarget.style.borderColor = 'var(--color-modal-add-hover-border)'
+                          e.currentTarget.style.color = '#ffffff'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSent && !isSending) {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.borderColor = 'var(--color-modal-add-border)'
+                          e.currentTarget.style.color = 'var(--color-modal-add-text)'
+                        }
+                      }}
                     >
                       {isSending ? (
-                        <span className="inline-block size-3 animate-spin rounded-full border-2 border-[#60a5fa]/30 border-t-[#60a5fa]" />
+                        <span className="inline-block size-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
                       ) : isSent ? (
                         <>
                           <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -230,17 +331,41 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
         </div>
 
         {/* Footer buttons */}
-        <div className="flex items-center justify-end gap-2.5 border-t border-[#1a2540] px-5 py-3.5">
+        <div
+          className="flex items-center justify-end gap-2.5 px-5 py-3.5"
+          style={{ borderTop: '1px solid var(--color-modal-border)' }}
+        >
           <button
             onClick={handleClose}
-            className="flex h-[36px] cursor-pointer items-center rounded-lg border-0 bg-[#1a2540] px-5 text-[13px] font-semibold text-[#94a3b8] transition-all duration-200 hover:bg-[#1e2d4a] hover:text-white"
+            className="flex h-[36px] cursor-pointer items-center rounded-lg border-0 px-5 text-[13px] font-semibold transition-all duration-200"
+            style={{
+              backgroundColor: 'var(--color-modal-cancel-bg)',
+              color: 'var(--color-modal-cancel-text)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-modal-cancel-hover)'
+              e.currentTarget.style.color = 'var(--color-modal-cancel-hover-text)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-modal-cancel-bg)'
+              e.currentTarget.style.color = 'var(--color-modal-cancel-text)'
+            }}
           >
             Hủy
           </button>
           <button
             onClick={handleSearch}
             disabled={!query.trim() || loading}
-            className="flex h-[36px] cursor-pointer items-center rounded-lg border-0 bg-[#2858cf] px-5 text-[13px] font-semibold text-white transition-all duration-200 hover:bg-[#3468e0] hover:shadow-[0_2px_10px_rgba(40,88,207,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-[36px] cursor-pointer items-center rounded-lg border-0 px-5 text-[13px] font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: 'var(--color-modal-search-bg)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-modal-search-hover)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-modal-search-bg)'
+            }}
           >
             Tìm kiếm
           </button>

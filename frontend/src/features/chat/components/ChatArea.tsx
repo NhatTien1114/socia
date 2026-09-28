@@ -14,7 +14,7 @@ export function ChatArea({ conversation, onToggleInfo }: Props) {
   const allParticipants = [currentUser, ...conversation.participants]
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-[#f4f7ff]">
+    <div className="flex min-w-0 flex-1 flex-col" style={{ backgroundColor: 'var(--color-chat-bg)' }}>
       <ChatHeader conversation={conversation} onToggleInfo={onToggleInfo} />
       <MessageList messages={conversation.messages} participants={allParticipants} />
       <MessageInput />

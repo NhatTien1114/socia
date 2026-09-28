@@ -13,11 +13,11 @@ type Props = {
   onMessage?: (name: string) => void
 }
 
-function avatarUrl(name: string, bg = '2858cf') {
+function avatarUrl(name: string, bg = '756FB3') {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${bg}&color=fff&bold=true&size=128`
 }
 
-const AVATAR_COLORS = ['6366f1', '0891b2', 'db2777', '059669', 'c2410c', '4338ca', 'b91c1c', '7c3aed']
+const AVATAR_COLORS = ['756FB3', '514CB2', '9A95D0', '35A56A', 'E4A84C', '5D8CC9', 'D95C6A']
 
 function colorFromName(name: string): string {
   let hash = 0
@@ -42,7 +42,15 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
   }
 
   return (
-    <div className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200 hover:bg-[#131f38]">
+    <div
+      className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200"
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--color-friends-item-hover)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent'
+      }}
+    >
       {/* Avatar */}
       <div className="relative shrink-0">
         <img
@@ -54,10 +62,10 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <p className="m-0 truncate text-[13.5px] font-semibold text-[#d1d9e8]">
+        <p className="m-0 truncate text-[13.5px] font-semibold" style={{ color: 'var(--color-friends-item-name)' }}>
           {displayName}
         </p>
-        <p className="m-0 mt-0.5 truncate text-[11.5px] text-[#546585]">
+        <p className="m-0 mt-0.5 truncate text-[11.5px]" style={{ color: 'var(--color-friends-item-subtitle)' }}>
           {variant === 'accepted' && 'Bạn bè'}
           {variant === 'pending' && 'Muốn kết bạn với bạn'}
           {variant === 'sent' && 'Đang chờ phản hồi'}
@@ -69,7 +77,19 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
         {variant === 'accepted' && (
           <button
             onClick={() => onMessage?.(displayName)}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-[#1a2540] text-[#60a5fa] transition-all duration-200 hover:bg-[#2858cf] hover:text-white hover:shadow-[0_2px_8px_rgba(40,88,207,0.3)]"
+            className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 transition-all duration-200"
+            style={{
+              backgroundColor: 'var(--color-friends-btn-msg-bg)',
+              color: 'var(--color-friends-btn-msg-text)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-msg-hover-bg)'
+              e.currentTarget.style.color = '#ffffff'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-msg-bg)'
+              e.currentTarget.style.color = 'var(--color-friends-btn-msg-text)'
+            }}
             title="Nhắn tin"
           >
             <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -83,7 +103,16 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
             <button
               onClick={() => handleAction('accept', onAccept)}
               disabled={loading !== null}
-              className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 bg-[#2858cf] px-3 text-[11.5px] font-semibold text-white transition-all duration-200 hover:bg-[#3468e0] hover:shadow-[0_2px_8px_rgba(40,88,207,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 px-3 text-[11.5px] font-semibold text-white transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--color-friends-btn-accept-bg)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-accept-hover)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-accept-bg)'
+              }}
             >
               {loading === 'accept' ? (
                 <span className="inline-block size-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -99,10 +128,20 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
             <button
               onClick={() => handleAction('reject', onReject)}
               disabled={loading !== null}
-              className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 bg-[#1a2540] px-3 text-[11.5px] font-semibold text-[#ef4444] transition-all duration-200 hover:bg-[#2a1520] hover:shadow-[0_2px_8px_rgba(239,68,68,0.15)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 px-3 text-[11.5px] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--color-friends-btn-reject-bg)',
+                color: 'var(--color-friends-btn-reject-text)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-reject-hover-bg)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-reject-bg)'
+              }}
             >
               {loading === 'reject' ? (
-                <span className="inline-block size-3 animate-spin rounded-full border-2 border-[#ef4444]/30 border-t-[#ef4444]" />
+                <span className="inline-block size-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
               ) : (
                 <>
                   <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -120,10 +159,22 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
           <button
             onClick={() => handleAction('cancel', onCancel)}
             disabled={loading !== null}
-            className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 bg-[#1a2540] px-2.5 text-[11.5px] font-semibold text-[#94a3b8] transition-all duration-200 hover:bg-[#2a1520] hover:text-[#ef4444] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-[30px] cursor-pointer items-center gap-1 rounded-lg border-0 px-2.5 text-[11.5px] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: 'var(--color-friends-btn-cancel-bg)',
+              color: 'var(--color-friends-btn-cancel-text)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-cancel-hover-bg)'
+              e.currentTarget.style.color = 'var(--color-friends-btn-cancel-hover-text)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-friends-btn-cancel-bg)'
+              e.currentTarget.style.color = 'var(--color-friends-btn-cancel-text)'
+            }}
           >
             {loading === 'cancel' ? (
-              <span className="inline-block size-3 animate-spin rounded-full border-2 border-[#94a3b8]/30 border-t-[#94a3b8]" />
+              <span className="inline-block size-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
             ) : (
               <>
                 <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

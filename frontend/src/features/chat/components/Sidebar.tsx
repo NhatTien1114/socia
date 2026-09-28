@@ -20,16 +20,22 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
     : conversations
 
   return (
-    <aside className="flex h-full w-[320px] shrink-0 flex-col border-r border-[#1a2540] bg-[#0f1729]">
+    <aside
+      className="flex h-full w-[320px] shrink-0 flex-col"
+      style={{ borderRight: '1px solid var(--color-sidebar-border)', backgroundColor: 'var(--color-sidebar-bg)' }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div className="flex items-center gap-2">
           <img className="size-8 object-contain" src="/Socia_Logo.png" alt="Socia" />
-          <span className="text-[17px] font-bold tracking-[-0.3px] text-white">Socia</span>
+          <span className="text-[17px] font-bold tracking-[-0.3px]" style={{ color: 'var(--color-sidebar-logo-text)' }}>Socia</span>
         </div>
         <button
           title="Cuộc trò chuyện mới"
-          className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-[#1a2540] text-[#60a5fa] transition hover:bg-[#1e2d4a] hover:text-white"
+          className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 transition"
+          style={{ backgroundColor: 'var(--color-sidebar-new-btn-bg)', color: 'var(--color-sidebar-new-btn-text)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-new-btn-hover)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-new-btn-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-new-btn-text)' }}
         >
           <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -40,8 +46,11 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
 
       {/* Search + Add Friend / Create Group icons */}
       <div className="flex items-center gap-2 px-4 pb-3">
-        <div className="flex flex-1 items-center gap-2.5 rounded-xl bg-[#1a2540] px-3 py-2 transition focus-within:bg-[#1e2d4a] focus-within:ring-1 focus-within:ring-[#2858cf]/40">
-          <svg className="size-4 shrink-0 text-[#546585]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div
+          className="flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2 transition"
+          style={{ backgroundColor: 'var(--color-sidebar-search-bg)' }}
+        >
+          <svg className="size-4 shrink-0" style={{ color: 'var(--color-sidebar-search-icon)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -50,14 +59,18 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
             onChange={(e) => setSearch(e.target.value)}
             type="text"
             placeholder="Tìm kiếm..."
-            className="w-full border-0 bg-transparent text-[13px] text-[#d1d9e8] outline-none placeholder:text-[#546585]"
+            className="w-full border-0 bg-transparent text-[13px] outline-none"
+            style={{ color: 'var(--color-sidebar-search-text)', '--tw-placeholder-color': 'var(--color-sidebar-search-placeholder)' } as React.CSSProperties}
           />
         </div>
         {/* Add friend icon */}
         <button
           onClick={onAddFriend}
           title="Thêm bạn"
-          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#1a2540] hover:text-[#60a5fa]"
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
+          style={{ color: 'var(--color-sidebar-icon-text)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-icon-hover-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-sidebar-icon-text)' }}
         >
           <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -69,7 +82,10 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
         {/* Create group icon */}
         <button
           title="Tạo nhóm"
-          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-[#546585] transition-all duration-200 hover:bg-[#1a2540] hover:text-[#60a5fa]"
+          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
+          style={{ color: 'var(--color-sidebar-icon-text)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-icon-hover-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-sidebar-icon-text)' }}
         >
           <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -81,9 +97,9 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
       </div>
 
       {/* Conversation list */}
-      <div className="scrollbar-dark flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-3">
+      <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-3">
         {filtered.length === 0 && (
-          <p className="px-3 py-8 text-center text-[13px] text-[#546585]">Không tìm thấy cuộc trò chuyện</p>
+          <p className="px-3 py-8 text-center text-[13px]" style={{ color: 'var(--color-text-disabled)' }}>Không tìm thấy cuộc trò chuyện</p>
         )}
         {filtered.map((conv) => (
           <ConversationItem

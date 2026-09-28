@@ -57,19 +57,26 @@ export function RegisterForm() {
           icon={<PhoneIcon />}
         />
         <div className="grid gap-1.5">
-          <label className="text-[13px] font-semibold text-[#52617d]" htmlFor="register-sex">
+          <label className="text-[13px] font-semibold" style={{ color: 'var(--color-auth-label)' }} htmlFor="register-sex">
             Giới tính
           </label>
-          <div className="flex min-h-11 items-center gap-2.5 rounded-xl border border-[#e3e8f2] bg-[#fafbfe] px-3.5 focus-within:border-[#3f6ee8] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#3f6ee8]/12">
-            <UserIcon />
+          <div
+            className="flex min-h-11 items-center gap-2.5 rounded-xl border px-3.5"
+            style={{
+              borderColor: 'var(--color-auth-field-border)',
+              backgroundColor: 'var(--color-auth-field-bg)',
+            }}
+          >
+            <span style={{ color: 'var(--color-auth-field-icon)' }}><UserIcon /></span>
             <select
-              className="w-full appearance-none border-0 bg-transparent text-sm text-[#273452] outline-none"
+              className="w-full appearance-none border-0 bg-transparent text-sm outline-none"
+              style={{ color: 'var(--color-auth-field-text)' }}
               id="register-sex"
               name="sex"
               defaultValue="MALE"
             >
-              <option value="MALE">Nam</option>
-              <option value="FEMALE">Nữ</option>
+              <option value="MALE" style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>Nam</option>
+              <option value="FEMALE" style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}>Nữ</option>
             </select>
           </div>
         </div>
@@ -96,25 +103,35 @@ export function RegisterForm() {
         />
         {message && (
           <p
-            className={`m-0 rounded-[10px] px-3 py-2.5 text-[13px] leading-snug ${
-              message.type === 'error' ? 'bg-[#fff0f2] text-[#b33a4c]' : 'bg-[#eaf9f0] text-[#20774a]'
-            }`}
+            className="m-0 rounded-[10px] px-3 py-2.5 text-[13px] leading-snug"
+            style={{
+              backgroundColor: message.type === 'error' ? 'var(--color-auth-error-bg)' : 'var(--color-auth-success-bg)',
+              color: message.type === 'error' ? 'var(--color-auth-error-text)' : 'var(--color-auth-success-text)',
+            }}
             role="alert"
           >
             {message.text}
           </p>
         )}
         <button
-          className="mt-0.5 min-h-11 cursor-pointer rounded-xl border-0 bg-linear-to-r from-[#2858cf] to-[#477cf0] text-sm font-bold text-white shadow-[0_10px_20px_rgba(48,93,211,0.2)] transition hover:-translate-y-px hover:brightness-105 disabled:cursor-wait disabled:opacity-70"
+          className="mt-0.5 min-h-11 cursor-pointer rounded-xl border-0 text-sm font-bold text-white transition hover:-translate-y-px hover:brightness-105 disabled:cursor-wait disabled:opacity-70"
+          style={{
+            background: 'linear-gradient(to right, var(--color-auth-btn-from), var(--color-auth-btn-to))',
+            boxShadow: '0 10px 20px var(--color-auth-btn-shadow)',
+          }}
           type="submit"
           disabled={loading}
         >
           {loading ? 'Đang tạo tài khoản…' : 'Tạo tài khoản'}
         </button>
       </form>
-      <p className="mb-0 mt-5 text-center text-[13px] text-[#7e8aa2]">
+      <p className="mb-0 mt-5 text-center text-[13px]" style={{ color: 'var(--color-auth-footer)' }}>
         Đã có tài khoản?{' '}
-        <a className="font-bold text-[#3565d9] no-underline hover:underline" href={APP_ROUTES.LOGIN}>
+        <a
+          className="font-bold no-underline hover:underline"
+          style={{ color: 'var(--color-auth-link)' }}
+          href={APP_ROUTES.LOGIN}
+        >
           Đăng nhập
         </a>
       </p>

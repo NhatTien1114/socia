@@ -11,7 +11,7 @@ export function ChatHeader({ conversation, onToggleInfo }: Props) {
   const displayName = isGroup ? groupName! : participants[0].name
   const isOnline = !isGroup && participants[0].online
   const avatarUrl = isGroup
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName!)}&background=1e3a5f&color=8bb8ff&bold=true&size=128`
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName!)}&background=514CB2&color=CACEE8&bold=true&size=128`
     : participants[0].avatar
   const subtitle = isGroup
     ? `${participants.length + 1} thành viên`
@@ -20,19 +20,25 @@ export function ChatHeader({ conversation, onToggleInfo }: Props) {
       : 'Offline'
 
   return (
-    <header className="flex items-center gap-3 border-b border-[#e8ecf4] bg-white/80 px-5 py-3 backdrop-blur-sm">
+    <header
+      className="flex items-center gap-3 px-5 py-3 backdrop-blur-sm"
+      style={{ borderBottom: '1px solid var(--color-chat-header-border)', backgroundColor: 'var(--color-chat-header-bg)' }}
+    >
       {/* Avatar */}
       <div className="relative shrink-0">
         <img src={avatarUrl} alt={displayName} className="size-10 rounded-full object-cover" />
         {isOnline && (
-          <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-[#22c55e]" />
+          <span
+            className="absolute bottom-0 right-0 size-2.5 rounded-full border-2"
+            style={{ borderColor: 'var(--color-surface)', backgroundColor: 'var(--color-success)' }}
+          />
         )}
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <h2 className="m-0 truncate text-[15px] font-semibold text-[#1a2540]">{displayName}</h2>
-        <p className={`m-0 text-[12px] ${isOnline ? 'text-[#22c55e]' : 'text-[#8490aa]'}`}>
+        <h2 className="m-0 truncate text-[15px] font-semibold" style={{ color: 'var(--color-chat-header-name)' }}>{displayName}</h2>
+        <p className="m-0 text-[12px]" style={{ color: isOnline ? 'var(--color-success)' : 'var(--color-chat-header-status)' }}>
           {subtitle}
         </p>
       </div>
@@ -67,7 +73,10 @@ function HeaderButton({ children, title, onClick }: { children: ReactNode; title
     <button
       onClick={onClick}
       title={title}
-      className="flex size-9 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent text-[#7e8aa2] transition-all duration-200 hover:bg-[#f0f4ff] hover:text-[#2858cf]"
+      className="flex size-9 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent transition-all duration-200"
+      style={{ color: 'var(--color-chat-header-btn)' }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-chat-header-btn-hover-bg)'; e.currentTarget.style.color = 'var(--color-chat-header-btn-hover)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-chat-header-btn)' }}
     >
       {children}
     </button>
