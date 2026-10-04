@@ -4,9 +4,10 @@ import type { Conversation } from '@/features/chat/types/chat.types'
 type Props = {
   conversation: Conversation
   onToggleInfo: () => void
+  onBack: () => void
 }
 
-export function ChatHeader({ conversation, onToggleInfo }: Props) {
+export function ChatHeader({ conversation, onToggleInfo, onBack }: Props) {
   const { participants, isGroup, groupName } = conversation
   const displayName = isGroup ? groupName! : participants[0].name
   const isOnline = !isGroup && participants[0].online
@@ -17,13 +18,14 @@ export function ChatHeader({ conversation, onToggleInfo }: Props) {
     ? `${participants.length + 1} thành viên`
     : isOnline
       ? 'Đang hoạt động'
-      : 'Offline'
+      : 'Trò chuyện riêng tư'
 
   return (
     <header
       className="flex items-center gap-3 px-5 py-3 backdrop-blur-sm"
       style={{ borderBottom: '1px solid var(--color-chat-header-border)', backgroundColor: 'var(--color-chat-header-bg)' }}
     >
+      <button onClick={onBack} aria-label="Quay lại danh sách" className="rounded-lg p-2 md:hidden" style={{ color: 'var(--color-text)' }}>←</button>
       {/* Avatar */}
       <div className="relative shrink-0">
         <img src={avatarUrl} alt={displayName} className="size-10 rounded-full object-cover" />
@@ -45,17 +47,6 @@ export function ChatHeader({ conversation, onToggleInfo }: Props) {
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        <HeaderButton title="Gọi thoại">
-          <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-          </svg>
-        </HeaderButton>
-        <HeaderButton title="Gọi video">
-          <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <polygon points="23 7 16 12 23 17 23 7" />
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-          </svg>
-        </HeaderButton>
         <HeaderButton title="Thông tin" onClick={onToggleInfo}>
           <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="12" r="10" />

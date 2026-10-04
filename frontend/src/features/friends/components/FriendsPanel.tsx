@@ -10,7 +10,13 @@ import {
 import { FriendItem } from './FriendItem.tsx'
 import { AddFriendModal } from './AddFriendModal.tsx'
 
-export function FriendsPanel() {
+type Props = {
+  onMessage: (username: string) => void
+  onFriendsChanged: () => void
+  currentUsername: string
+}
+
+export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: Props) {
   const [menuTab, setMenuTab] = useState<ContactsMenuTab>('friendList')
   const [requestTab, setRequestTab] = useState<'pending' | 'sent'>('pending')
   const [search, setSearch] = useState('')
@@ -20,32 +26,19 @@ export function FriendsPanel() {
   const [pending, setPending] = useState<FriendRequest[]>([])
   const [sent, setSent] = useState<FriendRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  function getCurrentUsername(): string {
-    const token = localStorage.getItem('socia_access_token')
-    if (!token) return ''
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.sub ?? ''
-    } catch {
-      return ''
-    }
-  }
-
-  const currentUsername = getCurrentUsername()
-
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [f, p, s] = await Promise.all([getMyFriends(), getPendingRequests(), getSentRequests()])
+  const fetchData = useCallback(() => {
+    return Promise.all([getMyFriends(), getPendingRequests(), getSentRequests()]).then(([f, p, s]) => {
       setFriends(f)
       setPending(p)
       setSent(s)
-    } catch (err) {
-      console.error('Failed to load friends data:', err)
-    } finally {
+      setError('')
+    }).catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : 'Không thể tải danh bạ.')
+    }).finally(() => {
       setLoading(false)
-    }
+    })
   }, [])
 
   useEffect(() => {
@@ -57,18 +50,21 @@ export function FriendsPanel() {
   }
 
   async function handleAccept(id: string) {
-    await respondFriendRequest(id, true)
-    fetchData()
+    try {
+      await respondFriendRequest(id, true)
+      onFriendsChanged()
+      await fetchData()
+    } catch (err) { setError(err instanceof Error ? err.message : 'Không thể chấp nhận lời mời.') }
   }
 
   async function handleReject(id: string) {
-    await respondFriendRequest(id, false)
-    fetchData()
+    try { await respondFriendRequest(id, false); await fetchData() }
+    catch (err) { setError(err instanceof Error ? err.message : 'Không thể từ chối lời mời.') }
   }
 
   async function handleCancel(id: string) {
-    await cancelFriendRequest(id)
-    fetchData()
+    try { await cancelFriendRequest(id); await fetchData() }
+    catch (err) { setError(err instanceof Error ? err.message : 'Không thể hủy lời mời.') }
   }
 
   // Group friends alphabetically
@@ -130,10 +126,10 @@ export function FriendsPanel() {
   ]
 
   return (
-    <div className="flex h-full min-w-0 flex-1">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col md:flex-row">
       {/* Left menu sidebar */}
       <div
-        className="flex h-full w-[250px] shrink-0 flex-col"
+        className="flex w-full shrink-0 flex-col md:h-full md:w-[250px]"
         style={{
           backgroundColor: 'var(--color-friends-menu-bg)',
           borderRight: '1px solid var(--color-friends-menu-border)',
@@ -243,7 +239,7 @@ export function FriendsPanel() {
 
       {/* Main content area */}
       <div
-        className="flex h-full min-w-0 flex-1 flex-col"
+        className="flex min-h-0 min-w-0 flex-1 flex-col"
         style={{ backgroundColor: 'var(--color-friends-content-bg)' }}
       >
         {/* Content header */}
@@ -356,6 +352,9 @@ export function FriendsPanel() {
         )}
 
         {/* Content */}
+        {error && <div role="alert" className="flex items-center justify-between gap-2 px-6 py-3 text-sm" style={{ color: 'var(--color-error)' }}>
+          <span>{error}</span><button onClick={() => void fetchData()} className="shrink-0 underline">Thử lại</button>
+        </div>}
         <div className="scrollbar-thin flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -427,6 +426,7 @@ export function FriendsPanel() {
                           key={req.id}
                           request={req}
                           variant="accepted"
+                          onMessage={onMessage}
                           displayName={getOtherName(req)}
                         />
                       ))}

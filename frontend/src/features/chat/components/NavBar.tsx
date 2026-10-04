@@ -1,15 +1,16 @@
 import type { JSX } from 'react'
-import type { NavTab } from '@/features/chat/types/chat.types'
-import { currentUser } from '@/features/chat/mocks/mockData'
+import type { NavTab, User } from '@/features/chat/types/chat.types'
+import { avatarFor } from '../utils/chatView'
 import { removeAccessToken } from '@/utils/storage'
 import { APP_ROUTES } from '@/constants/routes'
 
 type Props = {
+  me: User | null
   activeTab: NavTab
   onTabChange: (tab: NavTab) => void
 }
 
-export function NavBar({ activeTab, onTabChange }: Props) {
+export function NavBar({ activeTab, onTabChange, me }: Props) {
   function handleLogout() {
     removeAccessToken()
     window.location.href = APP_ROUTES.LOGIN
@@ -24,20 +25,16 @@ export function NavBar({ activeTab, onTabChange }: Props) {
 
   return (
     <nav
-      className="flex h-full w-[72px] shrink-0 flex-col items-center py-5"
+      className="flex h-full w-[52px] md:w-[72px] shrink-0 flex-col items-center py-5"
       style={{ backgroundColor: 'var(--color-navbar-bg)' }}
     >
       {/* Avatar */}
       <div className="relative mb-6">
         <img
-          src={currentUser.avatar}
-          alt={currentUser.name}
+          src={me?.avatar ?? avatarFor('?')}
+          alt={me?.name ?? 'Tài khoản'}
           className="size-10 rounded-full object-cover"
           style={{ boxShadow: `0 0 0 2px var(--color-navbar-ring)` }}
-        />
-        <span
-          className="absolute bottom-0 right-0 size-2.5 rounded-full border-2"
-          style={{ borderColor: 'var(--color-navbar-online-border)', backgroundColor: 'var(--color-success)' }}
         />
       </div>
 

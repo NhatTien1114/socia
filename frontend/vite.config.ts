@@ -12,8 +12,10 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5173,
+    strictPort: true,
     proxy: {
-      '/socia': 'http://localhost:8080',
+      '/socia': { target: process.env.SOCIA_API_TARGET ?? 'http://localhost:8080', changeOrigin: true, ws: true },
     },
   },
 })

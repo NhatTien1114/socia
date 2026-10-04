@@ -1,7 +1,7 @@
 import { getAccessToken } from '@/utils/storage'
 import type { FriendRequest, SendFriendRequestPayload, UserSearchResult } from '@/features/friends/types/friend.types'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/socia/v1'
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? '/socia/v1'
 
 function authHeaders(): HeadersInit {
   const token = getAccessToken()

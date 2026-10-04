@@ -7,9 +7,11 @@ type Props = {
   activeId: string | null
   onSelect: (id: string) => void
   onAddFriend: () => void
+  onNewChat: () => void
+  loading: boolean
 }
 
-export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Props) {
+export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewChat, loading }: Props) {
   const [search, setSearch] = useState('')
 
   const filtered = search.trim()
@@ -21,7 +23,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
 
   return (
     <aside
-      className="flex h-full w-[320px] shrink-0 flex-col"
+      className="flex h-full w-full md:w-[300px] lg:w-[320px] shrink-0 flex-col"
       style={{ borderRight: '1px solid var(--color-sidebar-border)', backgroundColor: 'var(--color-sidebar-bg)' }}
     >
       {/* Header */}
@@ -31,6 +33,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
           <span className="text-[17px] font-bold tracking-[-0.3px]" style={{ color: 'var(--color-sidebar-logo-text)' }}>Socia</span>
         </div>
         <button
+          onClick={onNewChat}
           title="Cuộc trò chuyện mới"
           className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 transition"
           style={{ backgroundColor: 'var(--color-sidebar-new-btn-bg)', color: 'var(--color-sidebar-new-btn-text)' }}
@@ -79,27 +82,14 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend }: Prop
             <line x1="23" y1="11" x2="17" y2="11" />
           </svg>
         </button>
-        {/* Create group icon */}
-        <button
-          title="Tạo nhóm"
-          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
-          style={{ color: 'var(--color-sidebar-icon-text)' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-icon-hover-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-sidebar-icon-text)' }}
-        >
-          <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        </button>
+
       </div>
 
       {/* Conversation list */}
       <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-3">
-        {filtered.length === 0 && (
-          <p className="px-3 py-8 text-center text-[13px]" style={{ color: 'var(--color-text-disabled)' }}>Không tìm thấy cuộc trò chuyện</p>
+        {loading && <p role="status" className="p-4 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Đang tải cuộc trò chuyện…</p>}
+        {!loading && filtered.length === 0 && (
+          <p className="px-3 py-8 text-center text-[13px]" style={{ color: 'var(--color-text-disabled)' }}>{search ? 'Không tìm thấy cuộc trò chuyện' : 'Chưa có cuộc trò chuyện. Chọn nút viết tin ở trên để nhắn cho bạn bè.'}</p>
         )}
         {filtered.map((conv) => (
           <ConversationItem

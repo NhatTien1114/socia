@@ -45,7 +45,7 @@ export function MessageBubble({ message, isMine, showAvatar, senderAvatar, sende
                 }
           }
         >
-          {message.type === 'text' && <p className="m-0">{message.content}</p>}
+          {message.type === 'text' && <p className="m-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.content}</p>}
 
           {message.type === 'image' && (
             <img
@@ -90,7 +90,7 @@ function VoiceMessage({ duration, isMine }: { duration: number; isMine: boolean 
       </button>
       <div className="flex items-end gap-[2.5px]">
         {Array.from({ length: bars }).map((_, i) => {
-          const h = Math.max(6, Math.sin(i * 0.7 + 1) * 14 + Math.random() * 6 + 8)
+          const h = Math.max(6, Math.sin(i * 0.7 + 1) * 14 + (Math.sin(i * 2.3) + 1) * 3 + 8)
           return (
             <div
               key={i}

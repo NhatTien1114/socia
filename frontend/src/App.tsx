@@ -11,6 +11,14 @@ function getPath() {
 
 function App() {
   const [path, setPath] = useState(getPath)
+  const authenticated = isAuthenticated()
+  const isAuthPage = path === APP_ROUTES.LOGIN || path === APP_ROUTES.REGISTER
+  const redirect = authenticated && isAuthPage ? APP_ROUTES.HOME
+    : !authenticated && !isAuthPage ? APP_ROUTES.LOGIN : null
+
+  useEffect(() => {
+    if (redirect) window.location.replace(redirect)
+  }, [redirect])
 
   useEffect(() => {
     function onNav() {
@@ -21,20 +29,10 @@ function App() {
   }, [])
 
   // Chưa đăng nhập → chỉ cho phép /login và /register
-  if (!isAuthenticated()) {
+  if (redirect) return null
+  if (!authenticated) {
     const isRegister = path === APP_ROUTES.REGISTER
-    // Nếu truy cập bất kỳ trang nào khác → redirect về /login
-    if (!isRegister && path !== APP_ROUTES.LOGIN) {
-      window.location.href = APP_ROUTES.LOGIN
-      return null
-    }
     return isRegister ? <RegisterPage /> : <LoginPage />
-  }
-
-  // Đã đăng nhập → nếu vào /login hoặc /register thì redirect về trang chủ
-  if (path === APP_ROUTES.LOGIN || path === APP_ROUTES.REGISTER) {
-    window.location.href = APP_ROUTES.HOME
-    return null
   }
 
   // Đã đăng nhập → hiển thị trang chủ

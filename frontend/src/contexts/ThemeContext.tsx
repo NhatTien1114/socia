@@ -1,13 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-
-type Theme = 'light' | 'dark'
-
-type ThemeContextType = {
-  theme: Theme
-  toggleTheme: () => void
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+import { useState, useEffect, type ReactNode } from 'react'
+import { ThemeContext, type Theme } from './theme'
 
 const STORAGE_KEY = 'socia_theme'
 
@@ -35,10 +27,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       {children}
     </ThemeContext.Provider>
   )
-}
-
-export function useTheme(): ThemeContextType {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error('useTheme must be used inside ThemeProvider')
-  return ctx
 }
