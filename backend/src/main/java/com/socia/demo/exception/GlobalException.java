@@ -8,9 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
-import lombok.extern.slf4j.Slf4j;
 import jakarta.validation.ConstraintViolation;
+import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
 @Slf4j
@@ -103,5 +104,17 @@ public class GlobalException {
                     String.valueOf(attribute.getValue()));
         }
         return mappedMessage;
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<Map<String, String>> handleResponseStatus(
+            ResponseStatusException exception) {
+        String message = exception.getReason() != null
+                ? exception.getReason()
+                : "Yêu cầu không hợp lệ.";
+
+        return ResponseEntity
+                .status(exception.getStatusCode())
+                .body(Map.of("message", message));
     }
 }

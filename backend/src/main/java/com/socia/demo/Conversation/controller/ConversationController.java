@@ -1,21 +1,26 @@
 package com.socia.demo.Conversation.controller;
 
-import java.util.List;
+import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.socia.demo.Conversation.dtos.request.ConversationRequest;
-import com.socia.demo.Conversation.dtos.response.ConversationResponse;
-import com.socia.demo.Conversation.service.ConversationService;
+import com.socia.demo.Chat.dtos.request.DirectConversationRequest;
+import com.socia.demo.Chat.dtos.request.SendMessageRequest;
+import com.socia.demo.Chat.dtos.response.BootstrapResponse;
+import com.socia.demo.Chat.dtos.response.ConversationSummaryResponse;
+import com.socia.demo.Chat.service.ChatService;
+import com.socia.demo.Message.dtos.response.MessagePageResponse;
+import com.socia.demo.Message.dtos.response.MessageResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
@@ -24,30 +29,44 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class ConversationController {
-    ConversationService conversationService;
+    private final ChatService chatService;
 
-    @PostMapping
-    public ResponseEntity<ConversationResponse> createConversation(@RequestBody ConversationRequest request) {
-        ConversationResponse response = conversationService.createConversation(request);
-        return ResponseEntity.ok().body(response);
+    @GetMapping("/bootstrap")
+    public BootstrapResponse bootstrap(
+            @AuthenticationPrincipal Jwt jwt) {
+        return chatService.bootstrap(jwt.getSubject());
     }
 
-    @GetMapping
-    public ResponseEntity<List<ConversationResponse>> getAllConversations() {
-        List<ConversationResponse> responses = conversationService.getAllConversations();
-        return ResponseEntity.ok().body(responses);
+    @PostMapping("/direct")
+    public ConversationSummaryResponse openDirect(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody DirectConversationRequest request) {
+        return chatService.openDirect(
+                jwt.getSubject(),
+                request.getFriendId());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteConversation(String id) {
-        conversationService.deleteConversation(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{conversationId}/messages")
+    public MessagePageResponse history(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID conversationId,
+            @RequestParam(required = false) UUID before,
+            @RequestParam(defaultValue = "30") int limit) {
+        return chatService.history(
+                jwt.getSubject(),
+                conversationId,
+                before,
+                limit);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ConversationResponse> updateConversation(@PathVariable String id,
-            @RequestBody ConversationRequest request) {
-        ConversationResponse response = conversationService.updateConversation(id, request);
-        return ResponseEntity.ok().body(response);
+    @PostMapping("/{conversationId}/messages")
+    public MessageResponse send(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID conversationId,
+            @Valid @RequestBody SendMessageRequest request) {
+        return chatService.send(
+                jwt.getSubject(),
+                conversationId,
+                request.getContent());
     }
 }

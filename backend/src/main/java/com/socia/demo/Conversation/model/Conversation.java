@@ -13,6 +13,8 @@ import com.socia.demo.User.model.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,10 +24,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -35,10 +41,14 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
+    @Enumerated(EnumType.STRING)
     ConversationType conversationType;
 
     String name;
     String avatar;
+
+    @Column(name = "direct_key", unique = true, length = 73)
+    String directKey;
 
     // Conversation 1-* ConversationParticipant (danh sách thành viên)
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
