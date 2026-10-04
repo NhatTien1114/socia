@@ -2,8 +2,14 @@ package com.socia.demo.User.service;
 
 import java.util.List;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +41,9 @@ public class UserService {
     }
 
     public UserResponse createUser(UserRequest userRequest) {
+        requireAdmin();
         User user = userMapper.toUser(userRequest);
+        user.setPassword(new BCryptPasswordEncoder().encode(userRequest.getPassword()));
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
@@ -50,14 +58,22 @@ public class UserService {
     }
 
     public UserResponse updateUser(String id, UserRequest userRequest) {
+        requireAdmin();
         User existingUser = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        String existingPassword = existingUser.getPassword();
         userMapper.updateUser(userRequest, existingUser);
+        if (userRequest.getPassword() != null) {
+            existingUser.setPassword(new BCryptPasswordEncoder().encode(userRequest.getPassword()));
+        } else {
+            existingUser.setPassword(existingPassword);
+        }
         User updatedUser = userRepository.save(existingUser);
         return userMapper.toUserResponse(updatedUser);
     }
 
     public void deleteUser(String id) {
+        requireAdmin();
         User existingUser = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(existingUser);
@@ -79,5 +95,27 @@ public class UserService {
         return users.stream()
                 .map(userMapper::toUserResponse)
                 .toList();
+    }
+
+    private void requireAdmin() {
+        if (getCurrentUser().getRole() != Role.ADMIN)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này.");
+    }
+
+    @Transactional
+    public void changePassword(String oldPass, String newPass) {
+        if (oldPass == null || oldPass.isEmpty() || oldPass.getBytes(StandardCharsets.UTF_8).length > 72
+                || newPass == null || newPass.isBlank() || newPass.length() < 8
+                || newPass.getBytes(StandardCharsets.UTF_8).length > 72)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu mới cần ít nhất 8 ký tự và tối đa 72 byte.");
+        User currentUser = getCurrentUser();
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (!passwordEncoder.matches(oldPass, currentUser.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại không đúng.");
+        }
+        if (passwordEncoder.matches(newPass, currentUser.getPassword()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mật khẩu mới phải khác mật khẩu hiện tại.");
+        currentUser.setPassword(passwordEncoder.encode(newPass));
+        userRepository.save(currentUser);
     }
 }

@@ -13,8 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import java.util.Map;
 
 import com.socia.demo.User.dtos.request.UserRequest;
+import com.socia.demo.User.dtos.request.ChangePasswordRequest;
 import com.socia.demo.User.dtos.response.UserResponse;
 import com.socia.demo.User.service.UserService;
 
@@ -55,5 +59,16 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request.oldPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> invalidBody() {
+        return ResponseEntity.badRequest().body(Map.of("message", "Dữ liệu gửi lên không hợp lệ."));
     }
 }

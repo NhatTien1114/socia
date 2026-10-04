@@ -66,7 +66,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                     var jwt = customJwtDecoder.decode(authorization.substring(7));
 
-                    // getName() của authentication này là JWT subject = username.
                     accessor.setUser(new JwtAuthenticationToken(jwt));
                     return message;
                 }

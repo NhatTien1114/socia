@@ -1,6 +1,7 @@
 package com.socia.demo.User.model;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +39,9 @@ public class User {
 
     String username;
     String password;
+    String displayName;
+    LocalDate birthDate;
+    @Column(length = 2048)
     String avatar;
     String phone;
     Sex sex;

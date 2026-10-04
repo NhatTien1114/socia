@@ -17,5 +17,6 @@ import lombok.experimental.FieldDefaults;
 public class UserSummaryResponse {
     UUID id;
     String username;
+    String displayName;
     String avatar;
 }

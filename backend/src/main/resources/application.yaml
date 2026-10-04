@@ -4,6 +4,10 @@ server:
     context-path: /socia/v1
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 4MB
+      max-request-size: 5MB
   application:
     name: socia
   datasource:
