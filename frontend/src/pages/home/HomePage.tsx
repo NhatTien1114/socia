@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { AccountDialog } from '@/features/account/components/AccountDialog'
+import type { AccountView } from '@/features/account/components/AvatarMenu'
 import type { Conversation, NavTab } from '@/features/chat/types/chat.types'
 import { NavBar } from '@/features/chat/components/NavBar'
 import { Sidebar } from '@/features/chat/components/Sidebar'
@@ -21,6 +23,7 @@ export function HomePage() {
   const [showAddFriend, setShowAddFriend] = useState(false)
   const [showNewChat, setShowNewChat] = useState(false)
   const [localError, setLocalError] = useState('')
+  const [accountView, setAccountView] = useState<AccountView | null>(null)
   const me = state.me ? toUser(state.me) : null
   const rooms = [...state.rooms].sort((a, b) => {
     const first = state.latest[a.id], second = state.latest[b.id]
@@ -56,7 +59,7 @@ export function HomePage() {
 
   return (
     <div className="flex h-full min-h-0">
-      <NavBar me={me} activeTab={activeTab} onTabChange={navigate} />
+      <NavBar me={me} activeTab={activeTab} onTabChange={navigate} onAccount={setAccountView} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div role="status" aria-live="polite" className="flex min-h-8 shrink-0 items-center gap-2 border-b px-4 py-1 text-[11px]"
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }}>
@@ -95,6 +98,8 @@ export function HomePage() {
         onChoose={id => void open(id)} onClose={() => setShowNewChat(false)}
         onContacts={() => { setShowNewChat(false); navigate('contacts') }} />}
       <AddFriendModal open={showAddFriend} onClose={() => setShowAddFriend(false)} onSuccess={() => void store.refresh()} />
+      {accountView && <AccountDialog initialView={accountView} me={me} onClose={() => setAccountView(null)}
+        onSaved={profile => { store.updateMe(profile); void store.refresh() }} />}
     </div>
   )
 }

@@ -7,7 +7,8 @@ export function avatarFor(name: string) {
   return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" rx="48" fill="#756FB3"/><text x="48" y="61" font-size="38" text-anchor="middle" fill="white" font-family="sans-serif">${escaped}</text></svg>`)}`
 }
 export function toUser(user: ChatUser): User {
-  return { id: user.id, name: user.username, avatar: user.avatar || avatarFor(user.username), online: false }
+  const name = user.displayName || user.username
+  return { id: user.id, name, avatar: user.avatar || avatarFor(name), online: false }
 }
 export function toMessage(message: ChatMessage): Message {
   // LocalDateTime has no timezone: preserve the backend's wall-clock time.

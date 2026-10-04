@@ -19,7 +19,7 @@ export function NewChatDialog({ friends, busy, loading, error, onChoose, onClose
     element?.showModal()
     return () => element?.close()
   }, [])
-  const filtered = friends.filter(friend => friend.username.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
+  const filtered = friends.filter(friend => `${friend.displayName ?? ''} ${friend.username}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
   return (
     <dialog ref={dialog} onCancel={onClose} aria-labelledby="new-chat-title"
       className="fixed inset-0 m-auto max-h-[80dvh] w-[min(420px,90vw)] rounded-3xl border p-5 shadow-2xl backdrop:bg-black/40"
@@ -36,7 +36,7 @@ export function NewChatDialog({ friends, busy, loading, error, onChoose, onClose
         {filtered.map(friend => <button key={friend.id} disabled={busy} onClick={() => onChoose(friend.id)}
           className="flex w-full items-center gap-3 rounded-xl p-3 text-left hover:opacity-70 disabled:opacity-40">
           <img src={friend.avatar || avatarFor(friend.username)} alt="" className="size-10 rounded-full object-cover" />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">{friend.username}</span><span aria-hidden>→</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{friend.displayName || friend.username}</span><span aria-hidden>→</span>
         </button>)}
       </div>
       {!loading && filtered.length === 0 && <p className="py-5 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>

@@ -92,6 +92,7 @@ export class ChatStore {
     this.update({ expired: true, connection: 'offline', error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' })
   }
   clearError = () => this.update({ error: '' })
+  updateMe = (me: ChatUser) => this.update({ me })
   connection = (connection: ChatState['connection']) => {
     if (!this.alive) return
     this.update({ connection })

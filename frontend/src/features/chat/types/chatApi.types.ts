@@ -1,4 +1,4 @@
-export type ChatUser = { id: string; username: string; avatar: string | null }
+export type ChatUser = { id: string; username: string; displayName?: string | null; avatar: string | null }
 export type ChatRoom = { id: string; friend: ChatUser }
 export type ChatMessage = {
   id: string

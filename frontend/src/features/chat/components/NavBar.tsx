@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import type { NavTab, User } from '@/features/chat/types/chat.types'
-import { avatarFor } from '../utils/chatView'
+import { AvatarMenu } from '@/features/account/components/AvatarMenu'
+import type { AccountView } from '@/features/account/components/AvatarMenu'
 import { removeAccessToken } from '@/utils/storage'
 import { APP_ROUTES } from '@/constants/routes'
 
@@ -8,9 +9,10 @@ type Props = {
   me: User | null
   activeTab: NavTab
   onTabChange: (tab: NavTab) => void
+  onAccount: (view: AccountView) => void
 }
 
-export function NavBar({ activeTab, onTabChange, me }: Props) {
+export function NavBar({ activeTab, onTabChange, me, onAccount }: Props) {
   function handleLogout() {
     removeAccessToken()
     window.location.href = APP_ROUTES.LOGIN
@@ -29,14 +31,7 @@ export function NavBar({ activeTab, onTabChange, me }: Props) {
       style={{ backgroundColor: 'var(--color-navbar-bg)' }}
     >
       {/* Avatar */}
-      <div className="relative mb-6">
-        <img
-          src={me?.avatar ?? avatarFor('?')}
-          alt={me?.name ?? 'Tài khoản'}
-          className="size-10 rounded-full object-cover"
-          style={{ boxShadow: `0 0 0 2px var(--color-navbar-ring)` }}
-        />
-      </div>
+      <AvatarMenu me={me} onSelect={onAccount} />
 
       {/* Navigation tabs */}
       <div className="flex flex-1 flex-col items-center gap-1">
