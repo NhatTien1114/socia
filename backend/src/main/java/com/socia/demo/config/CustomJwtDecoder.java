@@ -1,51 +1,42 @@
 package com.socia.demo.config;
 
-import java.text.ParseException;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
-import com.nimbusds.jose.JOSEException;
-import com.socia.demo.User.dtos.request.IntrospectRequest;
-import com.socia.demo.User.service.AuthenticationService;
-
 @Component
 public class CustomJwtDecoder implements JwtDecoder {
+    private final NimbusJwtDecoder decoder;
 
-    @Value("${app.jwt.secret}")
-    private String secretKey;
-
-    @Autowired
-    private AuthenticationService authenticationService;
-
-    private NimbusJwtDecoder nimbusJwtDecoder = null;
+    public CustomJwtDecoder(@Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.issuer:socia}") String issuer) {
+        var key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+        decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS512).build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<Jwt>(
+                new JwtTimestampValidator(Duration.ZERO),
+                new JwtIssuerValidator(issuer),
+                jwt -> jwt.getExpiresAt() != null && jwt.getSubject() != null
+                        ? OAuth2TokenValidatorResult.success()
+                        : OAuth2TokenValidatorResult.failure(
+                                new OAuth2Error("invalid_token", "Missing exp or sub", null))));
+    }
 
     @Override
     public Jwt decode(String token) throws JwtException {
-        try {
-            var response = authenticationService.introspect(IntrospectRequest.builder().token(token).build());
-
-            if (!response.isValid())
-                throw new JwtException("Token invalid");
-        } catch (JOSEException | ParseException e) {
-            throw new JwtException(e.getMessage());
-        }
-
-        if (Objects.isNull(nimbusJwtDecoder)) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HS512");
-            nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS512).build();
-        }
-
-        return nimbusJwtDecoder.decode(token);
+        return decoder.decode(token);
     }
-
 }

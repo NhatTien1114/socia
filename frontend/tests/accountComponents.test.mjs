@@ -17,7 +17,7 @@ const { default: userEvent } = await import('@testing-library/user-event')
 const { AvatarMenu } = await import('../src/features/account/components/AvatarMenu.tsx')
 const { AccountDialog } = await import('../src/features/account/components/AccountDialog.tsx')
 const { accountApi } = await import('../src/features/account/services/accountApi.ts')
-const { setAccessToken } = await import('../src/utils/storage.ts')
+const { resetCsrf } = await import('../src/lib/api.ts')
 const originalApi = { ...accountApi }
 const originalFetch = globalThis.fetch
 const originalCreateURL = URL.createObjectURL
@@ -36,6 +36,7 @@ afterEach(() => {
   URL.createObjectURL = originalCreateURL
   URL.revokeObjectURL = originalRevokeURL
   localStorage.clear()
+  resetCsrf()
 })
 
 test('avatar menu opens both actions, supports arrows and Escape, and dismisses outside', async () => {
@@ -167,16 +168,18 @@ test('saving disables duplicate submissions and prevents Escape from closing the
 })
 
 test('API sends authenticated multipart profile and JSON passwords, never password query strings', async () => {
-  setAccessToken('test-token')
   const calls = []
   globalThis.fetch = async (url, options) => {
+    if (url.endsWith('/auth/csrf')) return Response.json({ token: 'csrf-test', headerName: 'X-XSRF-TOKEN' })
     calls.push({ url, options })
     return url.endsWith('/change-password') ? new Response(null, { status: 204 }) : Response.json(profile)
   }
   const fields = { displayName: 'An', phone: null, sex: null, birthDate: null }
   await accountApi.save(fields, new File(['png'], 'photo.png', { type: 'image/png' }))
   const saved = calls[0]
-  assert.equal(saved.options.headers.get('Authorization'), 'Bearer test-token')
+  assert.equal(saved.options.credentials, 'include')
+  assert.equal(saved.options.headers.has('Authorization'), false)
+  assert.equal(saved.options.headers.get('X-XSRF-TOKEN'), 'csrf-test')
   assert.equal(saved.options.headers.has('Content-Type'), false)
   assert.deepEqual(JSON.parse(await saved.options.body.get('profile').text()), fields)
   assert.equal(saved.options.body.get('avatar').name, 'photo.png')

@@ -1,33 +1,39 @@
-import type {
-  ApiError,
-  AuthenticationResponse,
-  LoginPayload,
-  RegisterPayload,
-} from '@/features/auth/types/auth.types'
+import { apiRequest, resetCsrf } from '@/lib/api'
+import type { AuthenticationResponse, LoginPayload, RegisterPayload } from '../types/auth.types'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/socia/v1'
+export type Session = { authenticated: true; username: string; expiresAt: string; serverTime: string }
+export type SessionTiming = Session & { deadline: number }
 
-async function request<T>(path: string, body: object): Promise<T> {
-  let response: Response
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-  } catch {
-    throw new Error('Không thể kết nối tới máy chủ. Hãy kiểm tra backend đang chạy.')
+export async function getSession(): Promise<SessionTiming> {
+  const started = Date.now()
+  const data = await apiRequest<Session>('/auth/session')
+  const remaining = Date.parse(data.expiresAt) - Date.parse(data.serverTime)
+  if (data.authenticated !== true || !Number.isFinite(remaining)) {
+    throw new Error('Phản hồi phiên đăng nhập không hợp lệ.')
   }
-
-  const data = (await response.json().catch(() => ({}))) as T & ApiError
-  if (!response.ok) throw new Error(data.message ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.')
-  return data
+  // Server time tolerates a client clock offset; subtract request time conservatively.
+  return { ...data, deadline: started + Math.max(0, remaining) }
 }
 
 export async function login(payload: LoginPayload): Promise<AuthenticationResponse> {
-  return request<AuthenticationResponse>('/auth/login', payload)
+  const result = await apiRequest<AuthenticationResponse>('/auth/login', {
+    method: 'POST', publicRequest: true, headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  resetCsrf()
+  // Confirm that the browser actually accepted the cookie.
+  await getSession()
+  return result
 }
 
-export async function register(payload: RegisterPayload): Promise<AuthenticationResponse> {
-  return request<AuthenticationResponse>('/auth/register', payload)
+export function register(payload: RegisterPayload): Promise<AuthenticationResponse> {
+  return apiRequest('/auth/register', {
+    method: 'POST', publicRequest: true, headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function logout(): Promise<void> {
+  await apiRequest('/auth/logout', { method: 'POST' })
+  resetCsrf()
 }

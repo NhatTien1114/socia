@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Client } from '@stomp/stompjs'
-import { getAccessToken } from '@/utils/storage'
+import { ApiError, SESSION_EXPIRED_EVENT, notifySessionExpired } from '@/lib/api'
+import { getSession } from '@/features/auth/services/authApi'
 import { chatApi, websocketUrl } from '../services/chatApi'
 import { ChatStore } from '../state/chatStore'
 import type { ChatMessage } from '../types/chatApi.types'
@@ -16,21 +17,29 @@ export function useChat() {
       brokerURL: websocketUrl(), reconnectDelay: 3000, connectionTimeout: 10000,
       heartbeatIncoming: 10000, heartbeatOutgoing: 10000,
     })
+    const expire = () => {
+      if (!disposed) { store.expire(); void client.deactivate() }
+    }
+    // HTTP handshake sends the HttpOnly cookie automatically. No JWT in STOMP headers.
     client.beforeConnect = async () => {
       if (disposed || store.getSnapshot().expired) { void client.deactivate(); return }
       try {
-        const token = getAccessToken()
-        if (!token) throw new Error('Missing token')
-        const encoded = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-        const { exp } = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
-        if (typeof exp !== 'number' || exp * 1000 <= Date.now()) throw new Error('Expired token')
-        client.connectHeaders = { Authorization: `Bearer ${token}` }
+        const session = await getSession()
+        if (disposed || store.getSnapshot().expired) { void client.deactivate(); return }
+        const remaining = session.deadline - Date.now()
+        if (remaining <= 0) { notifySessionExpired(); return }
         clearTimeout(expiryTimer)
         expiryTimer = setTimeout(() => {
-          if (!disposed) { store.expire(); void client.deactivate() }
-        }, Math.min(exp * 1000 - Date.now(), 2_147_483_647))
+          if (!disposed) notifySessionExpired()
+        }, Math.min(remaining, 2_147_483_647))
         store.connection('connecting')
-      } catch { store.expire(); void client.deactivate() }
+      } catch (error) {
+        if (disposed) return
+        if (error instanceof ApiError && error.status === 401) expire()
+        else store.connection('offline')
+        // A network failure alone is not proof that the session expired.
+        // The handshake can still proceed; STOMP retries closed connections.
+      }
     }
     client.onConnect = () => {
       if (disposed) return
@@ -56,6 +65,7 @@ export function useChat() {
       const id = store.getSnapshot().activeId
       if (id) void store.loadHistory(id)
     }
+    window.addEventListener(SESSION_EXPIRED_EVENT, expire)
     window.addEventListener('online', recover)
     document.addEventListener('visibilitychange', recover)
     client.activate()
@@ -63,6 +73,7 @@ export function useChat() {
       disposed = true
       clearTimeout(expiryTimer)
       unsubscribe()
+      window.removeEventListener(SESSION_EXPIRED_EVENT, expire)
       window.removeEventListener('online', recover)
       document.removeEventListener('visibilitychange', recover)
       store.stop()

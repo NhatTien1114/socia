@@ -14,7 +14,6 @@ import { SettingsPanel } from '@/features/chat/components/SettingsPanel'
 import { useChat } from '@/features/chat/hooks/useChat'
 import { compareMessages, emptyHistory } from '@/features/chat/state/chatStore'
 import { toMessage, toUser } from '@/features/chat/utils/chatView'
-import { removeAccessToken } from '@/utils/storage'
 
 export function HomePage() {
   const { state, store } = useChat()
@@ -69,7 +68,7 @@ export function HomePage() {
         {(state.error || localError) && <div role="alert" className="flex flex-wrap items-center gap-3 px-4 py-2 text-xs"
           style={{ background: 'var(--color-surface)', color: 'var(--color-error)' }}>
           <span className="flex-1">{state.error || localError}</span>
-          {state.expired ? <button className="underline" onClick={() => { removeAccessToken(); window.location.href = '/login' }}>Đăng nhập lại</button>
+          {state.expired ? <button className="underline" onClick={() => window.location.replace('/login')}>Đăng nhập lại</button>
             : <button className="underline" onClick={() => { setLocalError(''); void store.refresh() }}>Thử lại</button>}
         </div>}
         <div className="relative flex min-h-0 flex-1">

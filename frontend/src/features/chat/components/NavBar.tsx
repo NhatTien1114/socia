@@ -1,8 +1,8 @@
-import type { JSX } from 'react'
+import { useState, type JSX } from 'react'
 import type { NavTab, User } from '@/features/chat/types/chat.types'
 import { AvatarMenu } from '@/features/account/components/AvatarMenu'
 import type { AccountView } from '@/features/account/components/AvatarMenu'
-import { removeAccessToken } from '@/utils/storage'
+import { logout } from '@/features/auth/services/authApi'
 import { APP_ROUTES } from '@/constants/routes'
 
 type Props = {
@@ -13,9 +13,18 @@ type Props = {
 }
 
 export function NavBar({ activeTab, onTabChange, me, onAccount }: Props) {
-  function handleLogout() {
-    removeAccessToken()
-    window.location.href = APP_ROUTES.LOGIN
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+  async function handleLogout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    setLogoutError('')
+    try {
+      await logout()
+      window.location.replace(APP_ROUTES.LOGIN)
+    } catch (error) {
+      setLogoutError(error instanceof Error ? error.message : 'Không thể đăng xuất. Vui lòng thử lại.')
+    } finally { setLoggingOut(false) }
   }
 
   const tabs: { id: NavTab; label: string; icon: JSX.Element }[] = [
@@ -72,8 +81,10 @@ export function NavBar({ activeTab, onTabChange, me, onAccount }: Props) {
       </div>
 
       {/* Logout */}
+      {logoutError && <p role="alert" className="px-1 text-xs" style={{ color: 'var(--color-error)' }}>{logoutError}</p>}
       <button
         onClick={handleLogout}
+        disabled={loggingOut}
         title="Đăng xuất"
         className="flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent transition-all duration-200"
         style={{ color: 'var(--color-navbar-icon)' }}

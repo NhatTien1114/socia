@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { login } from '@/features/auth/services/authApi'
-import { setAccessToken } from '@/utils/storage'
 import { APP_ROUTES } from '@/constants/routes'
 import { AuthField, LockIcon, UserIcon } from './AuthField'
 
@@ -18,10 +17,9 @@ export function LoginForm() {
         username: String(formData.get('username')),
         password: String(formData.get('password')),
       })
-      if (!result.authenticated || !result.token) {
+      if (!result.authenticated) {
         throw new Error('Không thể xác thực tài khoản. Vui lòng thử lại.')
       }
-      setAccessToken(result.token)
       setMessage({ type: 'success', text: result.message ?? 'Đăng nhập thành công.' })
       setTimeout(() => {
         window.location.href = APP_ROUTES.HOME

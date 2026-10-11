@@ -139,8 +139,9 @@ test('home integrates bootstrap, friend selection, room creation and REST send w
     static CLOSED = 3
     close() { this.readyState = 3; this.onclose?.({}) }
   }
-  localStorage.setItem('socia_access_token', `test.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.test`)
   globalThis.fetch = async (url, options) => {
+    if (url.endsWith('/auth/csrf')) return Response.json({ token: 'csrf-test', headerName: 'X-XSRF-TOKEN' })
+    if (url.endsWith('/auth/session')) return Response.json({ authenticated: true, username: 'Alice', serverTime: new Date().toISOString(), expiresAt: new Date(Date.now() + 3600000).toISOString() })
     calls.push({ url, ...options })
     const data = url.endsWith('/bootstrap') ? { me, friends: [friend], conversation: [] }
       : url.endsWith('/direct') ? room

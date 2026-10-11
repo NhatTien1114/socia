@@ -16,6 +16,5 @@ export type RegisterPayload = {
 
 export type AuthenticationResponse = {
   message?: string
-  token?: string
   authenticated?: boolean
 }

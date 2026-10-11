@@ -104,7 +104,11 @@ POST /socia/v1/auth/login
 }
 ```
 
-On successful login, the frontend stores the access token as `socia_access_token` in `localStorage`.
+On successful login, the backend sets the JWT in an HttpOnly cookie. The frontend sends requests with credentials, checks the session through `GET /auth/session`, and redirects to `/login` when the session expires. State-changing requests include the CSRF token returned by `GET /auth/csrf`; `POST /auth/logout` clears the authentication cookie. Access tokens are not stored in localStorage.
+
+For local HTTP development, `AUTH_COOKIE_SECURE` defaults to `false` and `FRONTEND_ORIGIN` defaults to `http://localhost:5173`. Set `AUTH_COOKIE_SECURE=true` when deploying over HTTPS and configure the frontend origin explicitly.
+
+In VS Code, the backend launch configuration reads the root `.env` file and runs a clean Maven compilation before starting with F5. Stop the debugger with Shift+F5.
 
 ## Available Commands
 
