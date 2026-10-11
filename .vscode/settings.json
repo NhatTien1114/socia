@@ -1,8 +1,0 @@
-{
-    "java.debug.settings.onBuildFailureProceed": false,
-    "java.debug.settings.forceBuildBeforeLaunch": false,
-    "java.autobuild.enabled": false,
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.import.maven.enabled": true,
-    "java.jdt.ls.lombokSupport.enabled": true
-}
