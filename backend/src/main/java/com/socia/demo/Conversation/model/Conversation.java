@@ -45,6 +45,7 @@ public class Conversation {
     ConversationType conversationType;
 
     String name;
+    @Column(length = 2048)
     String avatar;
 
     @Column(name = "direct_key", unique = true, length = 73)

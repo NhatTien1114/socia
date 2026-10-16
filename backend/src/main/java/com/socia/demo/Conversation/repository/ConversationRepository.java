@@ -16,6 +16,17 @@ public interface ConversationRepository
     Optional<Conversation> findByDirectKey(String directKey);
 
     @Query("""
+            select distinct c from Conversation c
+            left join fetch c.participants
+            join fetch c.createdPerson
+            where c.conversationType = com.socia.demo.Enum.ConversationType.GROUP
+              and exists (select p.id from ConversationParticipant p
+                          where p.conversation = c and p.user.id = :userId)
+            order by c.createdAt desc, c.id desc
+            """)
+    List<Conversation> findGroupsForMember(@Param("userId") UUID userId);
+
+    @Query("""
             select c
             from Conversation c
             join c.participants p

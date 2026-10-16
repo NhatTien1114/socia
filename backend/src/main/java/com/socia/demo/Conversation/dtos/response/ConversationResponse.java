@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.socia.demo.Enum.ConversationType;
-import com.socia.demo.User.model.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +21,7 @@ public class ConversationResponse {
     ConversationType conversationType;
     String name;
     String avatar;
-    User createdPerson;
+    UUID createdPersonId;
+    int memberCount;
     LocalDateTime createdAt;
 }

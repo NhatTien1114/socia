@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,9 +51,9 @@ public class GlobalException {
         log.error("RuntimeException: ", e);
         ApiResponse<Object> response = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
-                .message(e.getMessage() != null ? e.getMessage() : ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
+                .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
                 .build();
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(value = Exception.class)
@@ -60,7 +61,7 @@ public class GlobalException {
         log.error("Exception: ", e);
         ApiResponse<Object> response = ApiResponse.builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
-                .message(e.getMessage() != null ? e.getMessage() : ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
+                .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
                 .build();
         return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode().value()).body(response);
     }
@@ -115,7 +116,9 @@ public class GlobalException {
     @ExceptionHandler(ResponseStatusException.class)
     ResponseEntity<Map<String, String>> handleResponseStatus(
             ResponseStatusException exception) {
-        String message = exception.getReason() != null
+        String message = exception.getStatusCode().is5xxServerError()
+                ? ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()
+                : exception.getReason() != null
                 ? exception.getReason()
                 : "Yêu cầu không hợp lệ.";
 

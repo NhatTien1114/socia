@@ -15,7 +15,8 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, UU
     Optional<FriendRequest> findBySenderIdAndReceiverId(UUID senderId, UUID receiverId);
 
     @Query("SELECT fr FROM FriendRequest fr WHERE (fr.sender.id = :userId OR fr.receiver.id = :userId) AND fr.status = :status")
-    List<FriendRequest> findFriendsByUserIdAndStatus(@Param("userId") UUID userId, @Param("status") FriendRequestStatus status);
+    List<FriendRequest> findFriendsByUserIdAndStatus(@Param("userId") UUID userId,
+            @Param("status") FriendRequestStatus status);
 
     default List<FriendRequest> findFriendsByUserId(UUID userId) {
         return findFriendsByUserIdAndStatus(userId, FriendRequestStatus.ACCEPTED);
