@@ -7,6 +7,8 @@ import { Sidebar } from '@/features/chat/components/Sidebar'
 import { ChatArea } from '@/features/chat/components/ChatArea'
 import { InfoPanel } from '@/features/chat/components/InfoPanel'
 import { EmptyState } from '@/features/chat/components/EmptyState'
+import { CreateGroupDialog } from '@/features/chat/components/CreateGroupDialog'
+import { GroupsPanel } from '@/features/chat/components/GroupsPanel'
 import { NewChatDialog } from '@/features/chat/components/NewChatDialog'
 import { FriendsPanel } from '@/features/friends/components/FriendsPanel'
 import { AddFriendModal } from '@/features/friends/components/AddFriendModal'
@@ -21,6 +23,8 @@ export function HomePage() {
   const [showInfo, setShowInfo] = useState(false)
   const [showAddFriend, setShowAddFriend] = useState(false)
   const [showNewChat, setShowNewChat] = useState(false)
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+  const [groupsRevision, setGroupsRevision] = useState(0)
   const [localError, setLocalError] = useState('')
   const [accountView, setAccountView] = useState<AccountView | null>(null)
   const me = state.me ? toUser(state.me) : null
@@ -75,12 +79,13 @@ export function HomePage() {
           {activeTab === 'contacts' ? <FriendsPanel currentUsername={state.me?.username ?? ''}
             onMessage={name => void openByName(name)} onFriendsChanged={() => void store.refresh()} />
             : activeTab === 'settings' ? <SettingsPanel />
-            : activeTab === 'groups' ? <div className="m-auto p-6 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Chat nhóm chưa được hỗ trợ. Chọn Tin nhắn để trò chuyện 1–1.</div>
+            : activeTab === 'groups' ? <GroupsPanel meId={state.me?.id} revision={groupsRevision} onCreate={() => setShowCreateGroup(true)} />
             : <>
               <div className={`${active ? 'hidden md:flex' : 'flex'} min-h-0 w-full md:w-auto`}>
                 <Sidebar conversations={conversations} activeId={state.activeId} loading={state.loading}
                   onSelect={id => { store.select(id); setShowInfo(false) }}
                   onAddFriend={() => setShowAddFriend(true)}
+                  onCreateGroup={() => setShowCreateGroup(true)}
                   onNewChat={() => { store.clearError(); void store.refresh(); setShowNewChat(true) }} />
               </div>
               {active && me ? <ChatArea key={active.id} conversation={active} me={me}
@@ -93,6 +98,7 @@ export function HomePage() {
             </>}
         </div>
       </div>
+      {showCreateGroup && <CreateGroupDialog onClose={() => setShowCreateGroup(false)} onCreated={() => { setGroupsRevision(value => value + 1); navigate('groups') }} />}
       {showNewChat && <NewChatDialog friends={state.friends} busy={state.opening} loading={state.loading} error={state.error}
         onChoose={id => void open(id)} onClose={() => setShowNewChat(false)}
         onContacts={() => { setShowNewChat(false); navigate('contacts') }} />}

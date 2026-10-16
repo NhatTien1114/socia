@@ -69,6 +69,7 @@ export async function apiRequest<T>(path: string, options: Options = {}): Promis
     if (!response.ok) throw new ApiError(
       response.status === 401 && !publicRequest ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
         : response.status === 413 ? 'Ảnh không được vượt quá 4 MB.'
+        : response.status >= 500 ? 'Đã có lỗi xảy ra. Vui lòng thử lại sau.'
         : data?.message ?? data?.detail ?? 'Không thể thực hiện yêu cầu.', response.status,
     )
     return data as T

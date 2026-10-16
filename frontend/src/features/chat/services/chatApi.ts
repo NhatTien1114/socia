@@ -2,6 +2,21 @@ import { API_BASE_URL, apiRequest } from '@/lib/api'
 import type { ChatApi } from '../types/chatApi.types'
 
 export const chatApi: ChatApi = {
+  groups: () => apiRequest('/conversations/groups'),
+  createGroup: (request, avatar) => {
+    if (!avatar) return apiRequest('/conversations/groups', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request),
+    })
+    const body = new FormData()
+    body.append('group', new Blob([JSON.stringify(request)], { type: 'application/json' }))
+    body.append('avatar', avatar)
+    return apiRequest('/conversations/groups', { method: 'POST', body, signal: AbortSignal.timeout(90000) })
+  },
+  updateGroupAvatar: (id, avatar) => {
+    const body = new FormData()
+    body.append('avatar', avatar)
+    return apiRequest(`/conversations/groups/${id}/avatar`, { method: 'PUT', body, signal: AbortSignal.timeout(90000) })
+  },
   bootstrap: () => apiRequest('/conversations/bootstrap'),
   open: friendId => apiRequest('/conversations/direct', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ friendId }),

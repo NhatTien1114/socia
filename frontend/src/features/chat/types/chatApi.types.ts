@@ -1,5 +1,15 @@
 export type ChatUser = { id: string; username: string; displayName?: string | null; avatar: string | null }
 export type ChatRoom = { id: string; friend: ChatUser }
+export type CreateGroupRequest = { name: string; participantId: string[]; avatar?: string | null }
+export type GroupConversation = {
+  id: string
+  conversationType: 'GROUP'
+  name: string
+  avatar: string | null
+  createdPersonId: string
+  memberCount: number
+  createdAt: string
+}
 export type ChatMessage = {
   id: string
   conversationId: string
@@ -11,6 +21,9 @@ export type MessagePage = { items: ChatMessage[]; nextBefore: string | null }
 // BootstrapResponse.java uses the singular property "conversation".
 export type ChatBootstrap = { me: ChatUser; friends: ChatUser[]; conversation: ChatRoom[] }
 export type ChatApi = {
+  createGroup: (request: CreateGroupRequest, avatar?: File | null) => Promise<GroupConversation>
+  groups: () => Promise<GroupConversation[]>
+  updateGroupAvatar: (id: string, avatar: File) => Promise<GroupConversation>
   bootstrap: () => Promise<ChatBootstrap>
   open: (friendId: string) => Promise<ChatRoom>
   history: (id: string, before?: string | null, limit?: number) => Promise<MessagePage>
