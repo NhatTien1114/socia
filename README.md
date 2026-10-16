@@ -43,7 +43,7 @@ CREATE DATABASE socia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 The default backend configuration is in `backend/src/main/resources/application.yaml`. For local development, set database credentials and a strong JWT secret through environment variables:
 
 ```powershell
-$env:SPRING_DATASOURCE_URL = "jdbc:mysql://localhost:3306/socia?useSSL=false&serverTimezone=UTC"
+$env:SPRING_DATASOURCE_URL = "jdbc:mysql://localhost:3306/socia?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 $env:SPRING_DATASOURCE_USERNAME = "root"
 $env:SPRING_DATASOURCE_PASSWORD = "your-password"
 $env:JWT_SECRET = "replace-with-a-secret-of-at-least-64-bytes-for-hs512"
