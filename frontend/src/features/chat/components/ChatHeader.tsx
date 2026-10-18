@@ -23,10 +23,10 @@ export function ChatHeader({ conversation, onToggleInfo, onBack }: Props) {
 
   return (
     <header
-      className="flex items-center gap-3 px-5 py-3 backdrop-blur-sm"
+      className="flex shrink-0 items-center gap-2 px-3 py-2 backdrop-blur-sm sm:gap-3 sm:px-5 sm:py-3"
       style={{ borderBottom: '1px solid var(--color-chat-header-border)', backgroundColor: 'var(--color-chat-header-bg)' }}
     >
-      <button onClick={onBack} aria-label="Quay lại danh sách" className="rounded-lg p-2 md:hidden" style={{ color: 'var(--color-text)' }}>←</button>
+      <button onClick={onBack} aria-label="Quay lại danh sách" className="size-11 shrink-0 rounded-lg p-2 md:hidden" style={{ color: 'var(--color-text)' }}>←</button>
       {/* Avatar */}
       <div className="relative shrink-0">
         <img src={avatarUrl} alt={displayName} className="size-10 rounded-full object-cover" />

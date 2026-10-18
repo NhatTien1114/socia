@@ -10,20 +10,20 @@ export function AuthField({ label, icon, password = false, type, ...inputProps }
   const [visible, setVisible] = useState(false)
 
   return (
-    <div className="grid gap-1.5">
+    <div className="grid min-w-0 gap-1.5">
       <label className="text-[13px] font-semibold" style={{ color: 'var(--color-auth-label)' }} htmlFor={inputProps.id}>
         {label}
       </label>
       <div
-        className="flex min-h-11 items-center gap-2.5 rounded-xl border px-3.5 transition"
+        className="flex min-w-0 min-h-12 items-center gap-2 rounded-xl border pl-3 pr-2 transition sm:gap-2.5"
         style={{
           borderColor: 'var(--color-auth-field-border)',
           backgroundColor: 'var(--color-auth-field-bg)',
         }}
       >
-        <span style={{ color: 'var(--color-auth-field-icon)' }}>{icon}</span>
+        <span className="shrink-0" style={{ color: 'var(--color-auth-field-icon)' }}>{icon}</span>
         <input
-          className="min-w-0 w-full border-0 bg-transparent text-sm outline-none"
+          className="min-w-0 w-full flex-1 border-0 bg-transparent py-3 text-base outline-none lg:text-sm"
           style={{
             color: 'var(--color-auth-field-text)',
           }}
@@ -32,7 +32,7 @@ export function AuthField({ label, icon, password = false, type, ...inputProps }
         />
         {password && (
           <button
-            className="grid cursor-pointer place-items-center border-0 bg-transparent p-0 transition-colors"
+            className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-transparent p-0 transition-colors"
             style={{ color: 'var(--color-auth-field-icon)' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = 'var(--color-auth-eye-hover)'

@@ -6,7 +6,7 @@ export function InfoPanel({ conversation, onClose }: { conversation: Conversatio
   const name = conversation.isGroup ? conversation.groupName! : friend.name
   const avatar = conversation.isGroup ? conversation.groupAvatar || avatarFor(name) : friend.avatar
   return (
-    <aside aria-label="Thông tin cuộc trò chuyện" className="absolute inset-y-0 right-0 z-20 w-[min(280px,100%)] border-l p-5 shadow-xl xl:static xl:shrink-0 xl:shadow-none"
+    <aside aria-label="Thông tin cuộc trò chuyện" className="absolute inset-y-0 right-0 z-20 w-full overflow-y-auto border-l p-5 shadow-xl sm:w-[300px] xl:static xl:shrink-0 xl:shadow-none 2xl:w-[340px]"
       style={{ background: 'var(--color-info-panel-bg)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
       <div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Thông tin</h3>
         <button onClick={onClose} aria-label="Đóng thông tin" className="rounded-lg px-3 py-1 text-xl">×</button>

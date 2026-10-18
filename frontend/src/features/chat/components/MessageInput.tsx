@@ -23,7 +23,7 @@ export function MessageInput({ onSend, disabled = false }: Props) {
     }
   }
   return (
-    <form onSubmit={event => { event.preventDefault(); void send() }} className="shrink-0 px-4 py-3"
+    <form onSubmit={event => { event.preventDefault(); void send() }} className="chat-composer shrink-0 px-3 py-2 sm:px-4 sm:py-3"
       style={{ backgroundColor: 'var(--color-input-bg)', borderTop: '1px solid var(--color-input-border)' }}>
       {error && <p role="alert" className="mb-2 text-xs" style={{ color: 'var(--color-error)' }}>{error}</p>}
       <div className="flex items-end gap-2">
@@ -40,8 +40,8 @@ export function MessageInput({ onSend, disabled = false }: Props) {
           className="rounded-xl border-0 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: 'var(--color-primary)' }}>{sending ? 'Đang gửi…' : 'Gửi'}</button>
       </div>
-      <div className="mt-1.5 flex justify-between text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
-        <span>Enter để gửi · Shift + Enter để xuống dòng</span><span>{text.length}/2000</span>
+      <div className="mt-1.5 flex justify-end gap-2 text-[10px] sm:justify-between" style={{ color: 'var(--color-text-secondary)' }}>
+        <span className="hidden sm:inline">Enter để gửi · Shift + Enter để xuống dòng</span><span>{text.length}/2000</span>
       </div>
     </form>
   )

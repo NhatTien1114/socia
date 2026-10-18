@@ -83,19 +83,19 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-3 py-[5dvh] sm:pt-[10dvh] backdrop-blur-sm"
       style={{
         backgroundColor: 'var(--color-modal-backdrop)',
         animation: 'fadeIn 0.2s ease-out',
       }}
     >
       <div
-        className="flex w-full max-w-[440px] flex-col rounded-2xl shadow-2xl"
+        className="flex w-full max-w-[440px] min-h-0 flex-col rounded-2xl shadow-2xl"
         style={{
           backgroundColor: 'var(--color-modal-bg)',
           border: '1px solid var(--color-modal-border)',
           animation: 'slideUp 0.25s ease-out',
-          maxHeight: '75vh',
+            maxHeight: '80dvh',
         }}
       >
         {/* Header */}

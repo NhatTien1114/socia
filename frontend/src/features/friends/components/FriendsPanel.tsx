@@ -129,7 +129,7 @@ export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: P
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col md:flex-row">
       {/* Left menu sidebar */}
       <div
-        className="flex w-full shrink-0 flex-col md:h-full md:w-[250px]"
+        className="flex w-full shrink-0 flex-col md:h-full md:w-[220px] lg:w-[250px]"
         style={{
           backgroundColor: 'var(--color-friends-menu-bg)',
           borderRight: '1px solid var(--color-friends-menu-border)',
@@ -141,7 +141,7 @@ export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: P
           style={{ borderBottom: '1px solid var(--color-friends-menu-border)' }}
         >
           <div
-            className="flex flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5"
             style={{ backgroundColor: 'var(--color-sidebar-search-bg)' }}
           >
             <svg
@@ -160,7 +160,7 @@ export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: P
               onChange={(e) => setSearch(e.target.value)}
               type="text"
               placeholder="Tìm kiếm"
-              className="w-full border-0 bg-transparent text-[12px] outline-none"
+              className="min-w-0 w-full border-0 bg-transparent text-[12px] outline-none"
               style={{
                 color: 'var(--color-sidebar-search-text)',
               }}
@@ -190,14 +190,14 @@ export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: P
         </div>
 
         {/* Menu items */}
-        <div className="flex-1 space-y-0.5 px-2 py-2">
+        <div className="flex gap-1 overflow-x-auto px-2 py-2 md:block md:flex-1 md:space-y-0.5">
           {menuItems.map(({ id, label, icon, badge }) => {
             const isActive = menuTab === id
             return (
               <button
                 key={id}
                 onClick={() => setMenuTab(id)}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left transition-all duration-200"
+                className="flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border-0 px-3 py-2.5 text-left transition-all duration-200 md:w-full md:gap-3"
                 style={
                   isActive
                     ? {

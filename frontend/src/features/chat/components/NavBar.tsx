@@ -36,19 +36,22 @@ export function NavBar({ activeTab, onTabChange, me, onAccount }: Props) {
 
   return (
     <nav
-      className="flex h-full w-[52px] md:w-[72px] shrink-0 flex-col items-center py-5"
+      aria-label="Điều hướng chính"
+      className="app-navigation relative z-30 flex w-full shrink-0 items-center justify-around gap-1 px-2 py-2 md:h-full md:w-16 md:flex-col md:justify-start md:px-1 md:py-5 lg:w-[72px]"
       style={{ backgroundColor: 'var(--color-navbar-bg)' }}
     >
       {/* Avatar */}
       <AvatarMenu me={me} onSelect={onAccount} />
 
       {/* Navigation tabs */}
-      <div className="flex flex-1 flex-col items-center gap-1">
+      <div className="flex min-w-0 flex-1 items-center justify-around gap-1 md:flex-col md:justify-start">
         {tabs.map(({ id, label, icon }) => (
           <button
             key={id}
             onClick={() => onTabChange(id)}
             title={label}
+            aria-label={label}
+            aria-current={activeTab === id ? 'page' : undefined}
             className="group flex size-11 cursor-pointer items-center justify-center rounded-xl border-0 transition-all duration-200"
             style={
               activeTab === id
@@ -81,7 +84,7 @@ export function NavBar({ activeTab, onTabChange, me, onAccount }: Props) {
       </div>
 
       {/* Logout */}
-      {logoutError && <p role="alert" className="px-1 text-xs" style={{ color: 'var(--color-error)' }}>{logoutError}</p>}
+      {logoutError && <p role="alert" className="absolute bottom-full left-0 w-full rounded-lg p-2 text-xs md:static md:break-words" style={{ color: 'var(--color-error)', background: 'var(--color-surface)' }}>{logoutError}</p>}
       <button
         onClick={handleLogout}
         disabled={loggingOut}

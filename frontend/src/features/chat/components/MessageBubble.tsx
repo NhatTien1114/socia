@@ -19,7 +19,7 @@ export function MessageBubble({ message, isMine, showAvatar, senderAvatar, sende
       </div>
 
       {/* Bubble */}
-      <div className={`max-w-[65%] ${isMine ? 'items-end' : 'items-start'} flex flex-col`}>
+      <div className={`min-w-0 max-w-[calc(100%-3rem)] sm:max-w-[75%] lg:max-w-[min(65%,640px)] ${isMine ? 'items-end' : 'items-start'} flex flex-col`}>
         {!isMine && showAvatar && senderName && (
           <span className="mb-1 ml-1 text-[11px] font-medium" style={{ color: 'var(--color-bubble-sender-name)' }}>
             {senderName}

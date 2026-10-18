@@ -43,7 +43,7 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
 
   return (
     <div
-      className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200"
+      className="group flex flex-wrap items-center gap-3 rounded-2xl px-3 py-2.5 transition-all duration-200 sm:flex-nowrap"
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = 'var(--color-friends-item-hover)'
       }}
@@ -73,7 +73,7 @@ export function FriendItem({ request, variant, displayName, onAccept, onReject, 
       </div>
 
       {/* Actions */}
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className={`flex shrink-0 items-center justify-end gap-1.5 ${variant === 'pending' ? 'w-full sm:w-auto' : ''}`}>
         {variant === 'accepted' && (
           <button
             onClick={() => onMessage?.(displayName)}

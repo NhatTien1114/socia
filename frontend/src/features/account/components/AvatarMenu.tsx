@@ -23,7 +23,7 @@ export function AvatarMenu({ me, onSelect }: { me: User | null; onSelect: (view:
     trigger.current?.focus()
     onSelect(view)
   }
-  return <div ref={root} className="relative mb-6" onBlur={event => {
+  return <div ref={root} className="relative shrink-0 md:mb-6" onBlur={event => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }} onKeyDown={event => {
     if (event.key === 'Escape') { setOpen(false); trigger.current?.focus() }

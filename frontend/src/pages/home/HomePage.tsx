@@ -66,7 +66,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="app-shell flex min-h-0 flex-col-reverse md:flex-row">
       <NavBar me={me} activeTab={activeTab} onTabChange={navigate} onAccount={setAccountView} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div role="status" aria-live="polite" className="flex min-h-8 shrink-0 items-center gap-2 border-b px-4 py-1 text-[11px]"

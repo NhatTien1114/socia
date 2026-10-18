@@ -674,8 +674,55 @@
     @apply m-0 min-w-80 font-sans antialiased;
     background-color: var(--color-bg);
     color: var(--color-text);
-    overflow: hidden;
+    overflow-x: hidden;
   }
+}
+
+.auth-page {
+  padding: max(16px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+.auth-page [role="alert"] { overflow-wrap: anywhere; }
+@media (min-width: 640px) {
+  .auth-page { padding: 32px; }
+}
+@media (max-height: 600px) {
+  .auth-page { align-items: start; padding-block: 12px; }
+}
+
+/* Keep chat panels inside the visible viewport, including mobile browser chrome. */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.app-navigation { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+
+@media (max-width: 767px) {
+  .app-navigation { border-top: 1px solid var(--color-border); }
+  .app-navigation .account-menu {
+    top: auto;
+    bottom: calc(100% + 12px);
+    left: 0;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
+  }
+  /* Avoid automatic input zoom on iOS. */
+  input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .app-shell { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+@media (min-width: 1536px) {
+  .chat-composer, .chat-history { padding-inline: max(24px, calc((100% - 960px) / 2)); }
 }
 
 /* ─── Custom scrollbar ────────────────────────────────────── */

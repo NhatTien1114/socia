@@ -39,7 +39,7 @@ export function MessageList({ messages, participants, currentUserId, loading, ha
   return (
     <div ref={containerRef} aria-label="Lịch sử tin nhắn" aria-busy={loading}
       onScroll={() => { const el = containerRef.current; if (el) nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100 }}
-      className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-5 py-4">
+      className="chat-history scrollbar-thin min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5">
       {hasOlder && <button onClick={() => void loadOlder()} disabled={loading || loadingOlder}
         className="mx-auto mb-4 block rounded-full px-4 py-2 text-xs disabled:opacity-50"
         style={{ background: 'var(--color-primary-pale)', color: 'var(--color-primary)' }}>

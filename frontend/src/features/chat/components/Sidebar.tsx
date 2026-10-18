@@ -24,7 +24,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
 
   return (
     <aside
-      className="flex h-full w-full md:w-[300px] lg:w-[320px] shrink-0 flex-col"
+      className="flex h-full min-h-0 w-full shrink-0 flex-col md:w-[260px] lg:w-[300px] xl:w-[320px] 2xl:w-[360px]"
       style={{ borderRight: '1px solid var(--color-sidebar-border)', backgroundColor: 'var(--color-sidebar-bg)' }}
     >
       {/* Header */}
@@ -36,7 +36,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
         <button
           onClick={onNewChat}
           title="Cuộc trò chuyện mới"
-          className="flex size-8 cursor-pointer items-center justify-center rounded-lg border-0 transition"
+          className="flex size-11 cursor-pointer items-center justify-center rounded-lg border-0 transition"
           style={{ backgroundColor: 'var(--color-sidebar-new-btn-bg)', color: 'var(--color-sidebar-new-btn-text)' }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-new-btn-hover)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-new-btn-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-new-btn-text)' }}
@@ -51,7 +51,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
       {/* Search + Add Friend / Create Group icons */}
       <div className="flex items-center gap-2 px-4 pb-3">
         <div
-          className="flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2 transition"
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl px-3 py-2 transition"
           style={{ backgroundColor: 'var(--color-sidebar-search-bg)' }}
         >
           <svg className="size-4 shrink-0" style={{ color: 'var(--color-sidebar-search-icon)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -63,7 +63,8 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
             onChange={(e) => setSearch(e.target.value)}
             type="text"
             placeholder="Tìm kiếm..."
-            className="w-full border-0 bg-transparent text-[13px] outline-none"
+            aria-label="Tìm cuộc trò chuyện"
+            className="min-w-0 w-full border-0 bg-transparent text-[13px] outline-none"
             style={{ color: 'var(--color-sidebar-search-text)', '--tw-placeholder-color': 'var(--color-sidebar-search-placeholder)' } as React.CSSProperties}
           />
         </div>
@@ -71,7 +72,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
         <button
           onClick={onAddFriend}
           title="Thêm bạn"
-          className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
+          className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200"
           style={{ color: 'var(--color-sidebar-icon-text)' }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-sidebar-icon-hover-bg)'; e.currentTarget.style.color = 'var(--color-sidebar-icon-hover)' }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-sidebar-icon-text)' }}

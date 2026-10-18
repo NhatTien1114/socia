@@ -33,7 +33,7 @@ export function LoginForm() {
 
   return (
     <>
-      <form className="grid gap-3.5" onSubmit={handleSubmit} noValidate>
+      <form className="grid min-w-0 gap-3.5" onSubmit={handleSubmit} noValidate>
         <AuthField
           id="login-username"
           name="username"
@@ -53,8 +53,8 @@ export function LoginForm() {
           password
           icon={<LockIcon />}
         />
-        <div className="-mt-0.5 flex items-center justify-between gap-3 text-xs">
-          <label className="inline-flex cursor-pointer items-center gap-1.5" style={{ color: 'var(--color-auth-label)' }}>
+        <div className="-mt-0.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" style={{ color: 'var(--color-auth-label)' }}>
             <input
               type="checkbox"
               name="remember"
@@ -63,7 +63,7 @@ export function LoginForm() {
             Ghi nhớ đăng nhập
           </label>
           <a
-            className="font-bold no-underline hover:underline"
+            className="inline-flex min-h-11 items-center font-bold no-underline hover:underline"
             style={{ color: 'var(--color-auth-link)' }}
             href="#forgot-password"
           >

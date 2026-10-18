@@ -37,7 +37,7 @@ export function RegisterForm() {
 
   return (
     <>
-      <form className="grid gap-3" onSubmit={handleSubmit} noValidate>
+      <form className="grid min-w-0 gap-3" onSubmit={handleSubmit} noValidate>
         <AuthField
           id="register-username"
           name="username"
@@ -56,20 +56,20 @@ export function RegisterForm() {
           autoComplete="tel"
           icon={<PhoneIcon />}
         />
-        <div className="grid gap-1.5">
+        <div className="grid min-w-0 gap-1.5">
           <label className="text-[13px] font-semibold" style={{ color: 'var(--color-auth-label)' }} htmlFor="register-sex">
             Giới tính
           </label>
           <div
-            className="flex min-h-11 items-center gap-2.5 rounded-xl border px-3.5"
+            className="flex min-w-0 min-h-12 items-center gap-2.5 rounded-xl border px-3"
             style={{
               borderColor: 'var(--color-auth-field-border)',
               backgroundColor: 'var(--color-auth-field-bg)',
             }}
           >
-            <span style={{ color: 'var(--color-auth-field-icon)' }}><UserIcon /></span>
+            <span className="shrink-0" style={{ color: 'var(--color-auth-field-icon)' }}><UserIcon /></span>
             <select
-              className="w-full appearance-none border-0 bg-transparent text-sm outline-none"
+              className="min-w-0 w-full flex-1 border-0 bg-transparent py-3 text-base outline-none lg:text-sm"
               style={{ color: 'var(--color-auth-field-text)' }}
               id="register-sex"
               name="sex"
