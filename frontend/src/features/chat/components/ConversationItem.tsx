@@ -1,4 +1,5 @@
 import type { Conversation } from '@/features/chat/types/chat.types'
+import { avatarFor } from '../utils/chatView'
 
 type Props = {
   conversation: Conversation
@@ -11,7 +12,7 @@ export function ConversationItem({ conversation, active, onClick }: Props) {
   const displayName = isGroup ? groupName! : participants[0].name
   const isOnline = !isGroup && participants[0].online
   const avatarUrl = isGroup
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName!)}&background=514CB2&color=CACEE8&bold=true&size=128`
+    ? conversation.groupAvatar || avatarFor(groupName!)
     : participants[0].avatar
 
   return (
@@ -44,6 +45,7 @@ export function ConversationItem({ conversation, active, onClick }: Props) {
             style={{ color: active ? 'var(--color-conv-name-active)' : 'var(--color-conv-name)' }}
           >
             {displayName}
+            {isGroup && <span className="ml-2 text-[10px] font-normal" style={{ color: 'var(--color-text-secondary)' }}>Nhóm</span>}
           </span>
           <span
             className="shrink-0 text-[11px]"

@@ -87,6 +87,36 @@ class GroupIntegrationTests {
         verify(storage).upload(any());
     }
 
+    @Test void chatBootstrapIncludesGroupsAndOnlyMembersCanReadAndSend() throws Exception {
+        var group = service.createGroup(me.getUsername(), request(), null);
+        for (User member : List.of(me, first, second)) {
+            mvc.perform(get("/conversations/bootstrap").with(jwt().jwt(j -> j.subject(member.getUsername()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.conversation[0].id").value(group.getId().toString()))
+                .andExpect(jsonPath("$.conversation[0].conversationType").value("GROUP"))
+                .andExpect(jsonPath("$.conversation[0].name").value("Study group"))
+                .andExpect(jsonPath("$.conversation[0].participants.length()").value(3))
+                .andExpect(jsonPath("$.conversation[0].participants[0].password").doesNotExist());
+        }
+        mvc.perform(get("/conversations/bootstrap").with(jwt().jwt(j -> j.subject(outsider.getUsername()))))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.conversation.length()").value(0));
+        // First and second are not friends; membership is sufficient for group chat.
+        mvc.perform(post("/conversations/" + group.getId() + "/messages")
+                .with(jwt().jwt(j -> j.subject(first.getUsername()))).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"Hello group\"}"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.senderId").value(first.getId().toString()));
+        mvc.perform(get("/conversations/" + group.getId() + "/messages")
+                .with(jwt().jwt(j -> j.subject(second.getUsername()))))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].content").value("Hello group"));
+        mvc.perform(get("/conversations/" + group.getId() + "/messages")
+                .with(jwt().jwt(j -> j.subject(outsider.getUsername()))))
+            .andExpect(status().isForbidden());
+        mvc.perform(post("/conversations/" + group.getId() + "/messages")
+                .with(jwt().jwt(j -> j.subject(outsider.getUsername()))).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"Denied\"}"))
+            .andExpect(status().isForbidden());
+    }
+
     @Test void onlyGroupAdminCanChangeAvatar() throws Exception {
         var group = service.createGroup(me.getUsername(), request(), null);
         for (User denied : List.of(first, outsider)) {

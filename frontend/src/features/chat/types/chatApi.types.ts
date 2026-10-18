@@ -1,5 +1,7 @@
 export type ChatUser = { id: string; username: string; displayName?: string | null; avatar: string | null }
-export type ChatRoom = { id: string; friend: ChatUser }
+export type ChatRoom =
+  | { id: string; conversationType?: 'DIRECT'; friend: ChatUser }
+  | { id: string; conversationType: 'GROUP'; name: string; avatar: string | null; participants: ChatUser[] }
 export type CreateGroupRequest = { name: string; participantId: string[]; avatar?: string | null }
 export type GroupConversation = {
   id: string

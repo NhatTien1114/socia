@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { avatarFor } from '../utils/chatView'
 import type { Conversation } from '@/features/chat/types/chat.types'
 
 type Props = {
@@ -12,7 +13,7 @@ export function ChatHeader({ conversation, onToggleInfo, onBack }: Props) {
   const displayName = isGroup ? groupName! : participants[0].name
   const isOnline = !isGroup && participants[0].online
   const avatarUrl = isGroup
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName!)}&background=514CB2&color=CACEE8&bold=true&size=128`
+    ? conversation.groupAvatar || avatarFor(groupName!)
     : participants[0].avatar
   const subtitle = isGroup
     ? `${participants.length + 1} thành viên`

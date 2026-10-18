@@ -23,6 +23,49 @@ const { NewChatDialog } = await import('../src/features/chat/components/NewChatD
 const { HomePage } = await import('../src/pages/home/HomePage.tsx')
 afterEach(cleanup)
 
+test('home lists groups beside direct chats and opens group history, info and composer', async () => {
+  const originalFetch = globalThis.fetch
+  const originalWebSocket = globalThis.WebSocket
+  const me = { id: 'me', username: 'Alice', avatar: null }
+  const friend = { id: 'friend', username: 'Bob', avatar: null }
+  const group = { id: 'group', conversationType: 'GROUP', name: 'Study group', avatar: '/group.png', participants: [me, friend] }
+  const sent = []
+  globalThis.WebSocket = class {
+    readyState = 0
+    close() { this.readyState = 3; this.onclose?.({}) }
+  }
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.endsWith('/auth/csrf')) return Response.json({ token: 'csrf-test', headerName: 'X-XSRF-TOKEN' })
+    if (url.endsWith('/auth/session')) return Response.json({ authenticated: true, username: 'Alice', serverTime: new Date().toISOString(), expiresAt: new Date(Date.now() + 3600000).toISOString() })
+    if (url.endsWith('/bootstrap')) return Response.json({ me, friends: [friend], conversation: [{ id: 'direct', friend }, group] })
+    if (options.method === 'POST') {
+      sent.push(url)
+      return Response.json({ id: 'sent', conversationId: group.id, senderId: me.id, content: JSON.parse(options.body).content, createdAt: '2026-10-18T12:01:00' })
+    }
+    return Response.json({ items: url.includes('/group/') ? [{ id: 'old', conversationId: group.id, senderId: friend.id, content: 'Group history', createdAt: '2026-10-18T12:00:00' }] : [], nextBefore: null })
+  }
+  try {
+    render(h(HomePage))
+    const user = userEvent.setup({ document: dom.window.document })
+    await user.click(await screen.findByRole('button', { name: /Study group/ }))
+    const chat = screen.getByRole('region', { name: 'Trò chuyện với Study group' })
+    await waitFor(() => assert.ok(within(chat).getByText('Group history')))
+    assert.equal(within(chat).getByAltText('Study group').getAttribute('src'), '/group.png')
+    assert.ok(within(chat).getByText('2 thành viên'))
+    assert.ok(screen.getByRole('button', { name: /Bob/ }))
+    await user.click(screen.getByTitle('Thông tin'))
+    assert.ok(within(screen.getByLabelText('Thông tin cuộc trò chuyện')).getByText('Study group'))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn' }), 'Hello group')
+    await user.click(screen.getByRole('button', { name: 'Gửi' }))
+    await waitFor(() => assert.ok(within(chat).getByText('Hello group')))
+    assert.ok(sent[0].endsWith('/conversations/group/messages'))
+  } finally {
+    cleanup()
+    globalThis.fetch = originalFetch
+    globalThis.WebSocket = originalWebSocket
+  }
+})
+
 test('Enter sends once and clears the composer only after success', async () => {
   const calls = []
   let complete

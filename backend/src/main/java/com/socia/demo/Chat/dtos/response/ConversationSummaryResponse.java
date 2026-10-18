@@ -1,6 +1,8 @@
 package com.socia.demo.Chat.dtos.response;
 
 import java.util.UUID;
+import java.util.List;
+import com.socia.demo.Enum.ConversationType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,4 +19,8 @@ import lombok.experimental.FieldDefaults;
 public class ConversationSummaryResponse {
     UUID id;
     UserSummaryResponse friend;
+    ConversationType conversationType;
+    String name;
+    String avatar;
+    List<UserSummaryResponse> participants;
 }

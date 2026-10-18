@@ -31,9 +31,8 @@ public interface ConversationRepository
             from Conversation c
             join c.participants p
             where p.user.id = :userId
-              and c.directKey is not null
             order by c.createdAt desc
             """)
-    List<Conversation> findDirectConversations(
+    List<Conversation> findConversationsForMember(
             @Param("userId") UUID userId);
 }

@@ -12,16 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.socia.demo.Chat.dtos.response.BootstrapResponse;
 import com.socia.demo.Chat.dtos.response.ConversationSummaryResponse;
 import com.socia.demo.Chat.dtos.response.UserSummaryResponse;
+import com.socia.demo.Common.Common;
 import com.socia.demo.Conversation.model.Conversation;
 import com.socia.demo.Conversation.model.ConversationParticipant;
 import com.socia.demo.Conversation.repository.ConversationRepository;
 import com.socia.demo.Enum.ConversationType;
-import com.socia.demo.Enum.FriendRequestStatus;
 import com.socia.demo.Enum.MessageType;
 import com.socia.demo.Enum.ParticipantRole;
 import com.socia.demo.Message.dtos.response.MessagePageResponse;
@@ -45,9 +44,10 @@ public class ChatService {
         private final ConversationRepository conversations;
         private final MessageRepository messages;
         private final ApplicationEventPublisher events;
+        private final Common common;
 
         public BootstrapResponse bootstrap(String username) {
-                User me = requireUser(username);
+                User me = common.requireUser(username);
 
                 List<UserSummaryResponse> friends = friendships.findFriendsByUserId(me.getId())
                                 .stream()
@@ -58,7 +58,7 @@ public class ChatService {
                                 .distinct()
                                 .toList();
 
-                List<ConversationSummaryResponse> rooms = conversations.findDirectConversations(me.getId())
+                List<ConversationSummaryResponse> rooms = conversations.findConversationsForMember(me.getId())
                                 .stream()
                                 .map(room -> conversationSummary(room, me.getId()))
                                 .toList();
@@ -74,14 +74,14 @@ public class ChatService {
         public ConversationSummaryResponse openDirect(
                         String username,
                         UUID friendId) {
-                User me = requireUser(username);
+                User me = common.requireUser(username);
 
                 if (me.getId().equals(friendId)) {
-                        throw error(HttpStatus.BAD_REQUEST, "Không thể chat với chính mình.");
+                        throw Common.error(HttpStatus.BAD_REQUEST, "Không thể chat với chính mình.");
                 }
 
                 User friend = users.findById(friendId)
-                                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
+                                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
 
                 String first = me.getId().toString();
                 String second = friendId.toString();
@@ -95,9 +95,9 @@ public class ChatService {
                 String directKey = first + ":" + second;
 
                 users.findByIdForUpdate(UUID.fromString(first))
-                                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
+                                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
 
-                requireFriendship(me.getId(), friendId);
+                common.requireFriendship(me.getId(), friendId);
 
                 var existing = conversations.findByDirectKey(directKey);
 
@@ -135,7 +135,7 @@ public class ChatService {
                         UUID conversationId,
                         UUID before,
                         int requestedLimit) {
-                User me = requireUser(username);
+                User me = common.requireUser(username);
                 requireRoom(conversationId, me.getId());
 
                 int limit = Math.max(1, Math.min(requestedLimit, 100));
@@ -154,7 +154,8 @@ public class ChatService {
                 } else {
                         Message anchor = messages
                                         .findByIdAndConversationId(before, conversationId)
-                                        .orElseThrow(() -> error(HttpStatus.BAD_REQUEST, "Cursor không hợp lệ."));
+                                        .orElseThrow(() -> Common.error(HttpStatus.BAD_REQUEST,
+                                                        "Cursor không hợp lệ."));
 
                         found = messages.findOlderMessages(
                                         conversationId,
@@ -186,16 +187,17 @@ public class ChatService {
                         String username,
                         UUID conversationId,
                         String rawContent) {
-                User me = requireUser(username);
+                User me = common.requireUser(username);
                 Conversation room = requireRoom(conversationId, me.getId());
-                User friend = otherMember(room, me.getId());
-
-                requireFriendship(me.getId(), friend.getId());
+                if (room.getConversationType() == ConversationType.DIRECT) {
+                        User friend = otherMember(room, me.getId());
+                        common.requireFriendship(me.getId(), friend.getId());
+                }
 
                 String content = rawContent == null ? "" : rawContent.strip();
 
                 if (content.isBlank() || content.length() > 2000) {
-                        throw error(
+                        throw Common.error(
                                         HttpStatus.BAD_REQUEST,
                                         "Tin nhắn phải có từ 1 đến 2000 ký tự.");
                 }
@@ -210,51 +212,34 @@ public class ChatService {
 
                 MessageResponse response = messageResponse(saved);
 
-                // Listener chỉ gửi WebSocket sau khi transaction commit.
                 events.publishEvent(
                                 MessageSavedResponse.builder()
                                                 .message(response)
-                                                .usernames(List.of(me.getUsername(), friend.getUsername()))
+                                                .usernames(room.getParticipants().stream()
+                                                                .map(p -> p.getUser().getUsername()).distinct().toList())
                                                 .build());
 
                 return response;
         }
 
-        private User requireUser(String username) {
-                return users.getUserByUsername(username)
-                                .orElseThrow(() -> error(HttpStatus.UNAUTHORIZED, "Người dùng không tồn tại."));
-        }
-
-        private void requireFriendship(UUID first, UUID second) {
-                boolean accepted = friendships.findBySenderIdAndReceiverId(first, second)
-                                .filter(r -> r.getStatus() == FriendRequestStatus.ACCEPTED)
-                                .isPresent()
-                                ||
-                                friendships.findBySenderIdAndReceiverId(second, first)
-                                                .filter(r -> r.getStatus() == FriendRequestStatus.ACCEPTED)
-                                                .isPresent();
-
-                if (!accepted) {
-                        throw error(HttpStatus.FORBIDDEN, "Chỉ được nhắn tin với người đã kết bạn.");
-                }
-        }
-
         private Conversation requireRoom(UUID roomId, UUID userId) {
                 Conversation room = conversations.findById(roomId)
-                                .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "Không tìm thấy cuộc trò chuyện."));
+                                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND,
+                                                "Không tìm thấy cuộc trò chuyện."));
 
                 boolean member = room.getParticipants().stream()
                                 .anyMatch(p -> p.getUser().getId().equals(userId));
 
                 if (!member) {
-                        throw error(
+                        throw Common.error(
                                         HttpStatus.FORBIDDEN,
                                         "Bạn không thuộc cuộc trò chuyện này.");
                 }
 
-                if (room.getConversationType() != ConversationType.DIRECT
-                                || room.getParticipants().size() != 2) {
-                        throw error(
+                if (room.getConversationType() != ConversationType.GROUP
+                                && (room.getConversationType() != ConversationType.DIRECT
+                                                || room.getParticipants().size() != 2)) {
+                        throw Common.error(
                                         HttpStatus.BAD_REQUEST,
                                         "Cuộc trò chuyện không phải phòng 1–1 hợp lệ.");
                 }
@@ -267,7 +252,7 @@ public class ChatService {
                                 .map(ConversationParticipant::getUser)
                                 .filter(user -> !user.getId().equals(meId))
                                 .findFirst()
-                                .orElseThrow(() -> error(HttpStatus.BAD_REQUEST, "Phòng thiếu thành viên."));
+                                .orElseThrow(() -> Common.error(HttpStatus.BAD_REQUEST, "Phòng thiếu thành viên."));
         }
 
         private UserSummaryResponse userSummary(User user) {
@@ -284,7 +269,13 @@ public class ChatService {
                         UUID meId) {
                 return ConversationSummaryResponse.builder()
                                 .id(room.getId())
-                                .friend(userSummary(otherMember(room, meId)))
+                                .friend(room.getConversationType() == ConversationType.DIRECT
+                                                ? userSummary(otherMember(room, meId)) : null)
+                                .conversationType(room.getConversationType())
+                                .name(room.getName())
+                                .avatar(room.getAvatar())
+                                .participants(room.getParticipants().stream()
+                                                .map(p -> userSummary(p.getUser())).toList())
                                 .build();
         }
 
@@ -296,11 +287,5 @@ public class ChatService {
                                 .content(message.getContent())
                                 .createdAt(message.getCreatedAt())
                                 .build();
-        }
-
-        private ResponseStatusException error(
-                        HttpStatus status,
-                        String message) {
-                return new ResponseStatusException(status, message);
         }
 }

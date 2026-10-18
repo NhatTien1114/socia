@@ -54,6 +54,6 @@ export function GroupsPanel({ meId, revision, onCreate }: { meId?: string; revis
     {error && <div role="alert" className="mb-4 text-sm" style={{ color: 'var(--color-error)' }}>{error}<button className="ml-3 underline" onClick={() => { setLoading(true); setError(''); setAttempt(value => value + 1) }}>Thử lại</button></div>}
     {!loading && !error && filtered.length === 0 && <p className="py-10 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>{search ? 'Không tìm thấy nhóm phù hợp.' : 'Bạn chưa tham gia nhóm nào. Hãy tạo nhóm cùng bạn bè.'}</p>}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{filtered.map(group => <GroupCard key={group.id} group={group} meId={meId} onSaved={saved => setGroups(items => items.map(item => item.id === saved.id ? saved : item))} />)}</div>
-    {groups.length > 0 && <p className="mt-5 text-xs" style={{ color: 'var(--color-text-secondary)' }}>Tính năng gửi tin nhắn trong nhóm chưa được hỗ trợ.</p>}
+    {groups.length > 0 && <p className="mt-5 text-xs" style={{ color: 'var(--color-text-secondary)' }}>Mở nhóm từ danh sách trò chuyện để gửi tin nhắn.</p>}
   </section>
 }

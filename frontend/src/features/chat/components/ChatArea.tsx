@@ -17,7 +17,7 @@ type Props = {
 }
 export function ChatArea({ conversation, me, history, disabled, onToggleInfo, onBack, onSend, onLoadOlder, onRetry }: Props) {
   return (
-    <section aria-label={`Trò chuyện với ${conversation.participants[0].name}`} className="flex min-h-0 min-w-0 flex-1 flex-col"
+    <section aria-label={`Trò chuyện với ${conversation.isGroup ? conversation.groupName : conversation.participants[0].name}`} className="flex min-h-0 min-w-0 flex-1 flex-col"
       style={{ backgroundColor: 'var(--color-chat-bg)' }}>
       <ChatHeader conversation={conversation} onToggleInfo={onToggleInfo} onBack={onBack} />
       {history.error && <div role="alert" className="flex items-center justify-between gap-2 px-4 py-2 text-xs" style={{ color: 'var(--color-error)' }}>

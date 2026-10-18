@@ -33,7 +33,12 @@ export function HomePage() {
     return first && second ? compareMessages(second, first) : first ? -1 : second ? 1 : 0
   })
   const conversations: Conversation[] = rooms.map(room => ({
-    id: room.id, participants: [toUser(room.friend)], isGroup: false,
+    id: room.id,
+    participants: room.conversationType === 'GROUP'
+      ? room.participants.filter(user => user.id !== state.me?.id).map(toUser) : [toUser(room.friend)],
+    isGroup: room.conversationType === 'GROUP',
+    groupName: room.conversationType === 'GROUP' ? room.name : undefined,
+    groupAvatar: room.conversationType === 'GROUP' ? room.avatar ?? undefined : undefined,
     lastMessage: state.latest[room.id]?.content ?? 'Bắt đầu cuộc trò chuyện',
     lastMessageTime: state.latest[room.id]?.createdAt.slice(11, 16) ?? '',
     unread: state.unread[room.id] ?? 0,
@@ -45,7 +50,7 @@ export function HomePage() {
     setActiveTab(tab)
     setShowInfo(false)
     if (tab !== 'chat') store.select(null)
-    if (tab === 'contacts') void store.refresh()
+    if (tab === 'contacts' || tab === 'chat') void store.refresh()
   }
   async function open(friendId: string) {
     setLocalError('')
@@ -98,7 +103,7 @@ export function HomePage() {
             </>}
         </div>
       </div>
-      {showCreateGroup && <CreateGroupDialog onClose={() => setShowCreateGroup(false)} onCreated={() => { setGroupsRevision(value => value + 1); navigate('groups') }} />}
+      {showCreateGroup && <CreateGroupDialog onClose={() => setShowCreateGroup(false)} onCreated={() => { setGroupsRevision(value => value + 1); navigate('chat') }} />}
       {showNewChat && <NewChatDialog friends={state.friends} busy={state.opening} loading={state.loading} error={state.error}
         onChoose={id => void open(id)} onClose={() => setShowNewChat(false)}
         onContacts={() => { setShowNewChat(false); navigate('contacts') }} />}

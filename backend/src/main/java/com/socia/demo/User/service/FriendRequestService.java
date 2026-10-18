@@ -79,7 +79,8 @@ public class FriendRequestService {
                 .orElseThrow(() -> new RuntimeException("Friend request not found with id: " + requestId));
 
         if (!friendRequest.getReceiver().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not authorized to respond to this friend request (only the receiver can accept/reject)");
+            throw new RuntimeException(
+                    "You are not authorized to respond to this friend request (only the receiver can accept/reject)");
         }
 
         if (friendRequest.getStatus() != FriendRequestStatus.PENDING) {
@@ -89,11 +90,10 @@ public class FriendRequestService {
         if (Boolean.TRUE.equals(accept)) {
             friendRequest.setStatus(FriendRequestStatus.ACCEPTED);
             friendRequest.setRespondedAt(LocalDateTime.now());
-        } else {
-            friendRequest.setStatus(FriendRequestStatus.REJECTED);
-            friendRequest.setRespondedAt(LocalDateTime.now());
+            return friendRequestMapper.toFriendResponse(friendRequestRepository.save(friendRequest));
         }
-        return friendRequestMapper.toFriendResponse(friendRequestRepository.save(friendRequest));
+        friendRequestRepository.delete(friendRequest);
+        return null;
     }
 
     @Transactional(readOnly = true)
