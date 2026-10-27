@@ -23,7 +23,7 @@ public class Common {
 
         public User requireUser(String username) {
                 return userRepository.getUserByUsername(username)
-                                .orElseThrow(() -> error(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập lại."));
+                                .orElseThrow(() -> error(HttpStatus.UNAUTHORIZED, "User không tồn tại!"));
         }
 
         public static ResponseStatusException error(HttpStatus status, String message) {

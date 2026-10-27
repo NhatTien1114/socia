@@ -17,6 +17,7 @@ import com.socia.demo.Chat.dtos.response.BootstrapResponse;
 import com.socia.demo.Chat.dtos.response.ConversationSummaryResponse;
 import com.socia.demo.Chat.dtos.response.UserSummaryResponse;
 import com.socia.demo.Common.Common;
+import com.socia.demo.Common.ConversationAccess;
 import com.socia.demo.Conversation.model.Conversation;
 import com.socia.demo.Conversation.model.ConversationParticipant;
 import com.socia.demo.Conversation.repository.ConversationRepository;
@@ -28,6 +29,7 @@ import com.socia.demo.Message.dtos.response.MessageResponse;
 import com.socia.demo.Message.dtos.response.MessageSavedResponse;
 import com.socia.demo.Message.model.Message;
 import com.socia.demo.Message.repository.MessageRepository;
+import com.socia.demo.Message.service.MessageReadService;
 import com.socia.demo.User.model.User;
 import com.socia.demo.User.repository.FriendRequestRepository;
 import com.socia.demo.User.repository.UserRepository;
@@ -45,6 +47,8 @@ public class ChatService {
         private final MessageRepository messages;
         private final ApplicationEventPublisher events;
         private final Common common;
+        private final ConversationAccess access;
+        private final MessageReadService reads;
 
         public BootstrapResponse bootstrap(String username) {
                 User me = common.requireUser(username);
@@ -136,7 +140,7 @@ public class ChatService {
                         UUID before,
                         int requestedLimit) {
                 User me = common.requireUser(username);
-                requireRoom(conversationId, me.getId());
+                access.requireRoom(conversationId, me.getId());
 
                 int limit = Math.max(1, Math.min(requestedLimit, 100));
 
@@ -174,6 +178,7 @@ public class ChatService {
                 List<MessageResponse> items = new ArrayList<>(
                                 selected.stream().map(this::messageResponse).toList());
 
+                reads.attach(items);
                 Collections.reverse(items);
 
                 return MessagePageResponse.builder()
@@ -188,9 +193,9 @@ public class ChatService {
                         UUID conversationId,
                         String rawContent) {
                 User me = common.requireUser(username);
-                Conversation room = requireRoom(conversationId, me.getId());
+                Conversation room = access.requireRoom(conversationId, me.getId());
                 if (room.getConversationType() == ConversationType.DIRECT) {
-                        User friend = otherMember(room, me.getId());
+                        User friend = access.otherMember(room, me.getId());
                         common.requireFriendship(me.getId(), friend.getId());
                 }
 
@@ -222,39 +227,6 @@ public class ChatService {
                 return response;
         }
 
-        private Conversation requireRoom(UUID roomId, UUID userId) {
-                Conversation room = conversations.findById(roomId)
-                                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND,
-                                                "Không tìm thấy cuộc trò chuyện."));
-
-                boolean member = room.getParticipants().stream()
-                                .anyMatch(p -> p.getUser().getId().equals(userId));
-
-                if (!member) {
-                        throw Common.error(
-                                        HttpStatus.FORBIDDEN,
-                                        "Bạn không thuộc cuộc trò chuyện này.");
-                }
-
-                if (room.getConversationType() != ConversationType.GROUP
-                                && (room.getConversationType() != ConversationType.DIRECT
-                                                || room.getParticipants().size() != 2)) {
-                        throw Common.error(
-                                        HttpStatus.BAD_REQUEST,
-                                        "Cuộc trò chuyện không phải phòng 1–1 hợp lệ.");
-                }
-
-                return room;
-        }
-
-        private User otherMember(Conversation room, UUID meId) {
-                return room.getParticipants().stream()
-                                .map(ConversationParticipant::getUser)
-                                .filter(user -> !user.getId().equals(meId))
-                                .findFirst()
-                                .orElseThrow(() -> Common.error(HttpStatus.BAD_REQUEST, "Phòng thiếu thành viên."));
-        }
-
         private UserSummaryResponse userSummary(User user) {
                 return UserSummaryResponse.builder()
                                 .id(user.getId())
@@ -270,7 +242,7 @@ public class ChatService {
                 return ConversationSummaryResponse.builder()
                                 .id(room.getId())
                                 .friend(room.getConversationType() == ConversationType.DIRECT
-                                                ? userSummary(otherMember(room, meId)) : null)
+                                                ? userSummary(access.otherMember(room, meId)) : null)
                                 .conversationType(room.getConversationType())
                                 .name(room.getName())
                                 .avatar(room.getAvatar())

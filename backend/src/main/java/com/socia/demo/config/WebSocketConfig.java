@@ -24,6 +24,7 @@ import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String origin;
+    private final org.springframework.scheduling.TaskScheduler heartbeat;
     private final Map<String, ScheduledFuture<?>> expiryTasks = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(task -> {
         Thread thread = new Thread(task, "socia-websocket-expiry");
@@ -31,7 +32,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return thread;
     });
 
-    public WebSocketConfig(@Value("${app.frontend-origin:http://localhost:5173}") String origin) {
+    public WebSocketConfig(@Value("${app.frontend-origin:http://localhost:5173}") String origin,
+            @org.springframework.beans.factory.annotation.Qualifier("presenceHeartbeatScheduler") org.springframework.scheduling.TaskScheduler heartbeat) {
+        this.heartbeat = heartbeat;
         this.origin = origin;
     }
 
@@ -42,7 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/queue");
+        registry.enableSimpleBroker("/queue").setTaskScheduler(heartbeat).setHeartbeatValue(new long[] {10000, 10000});
         registry.setUserDestinationPrefix("/user");
         registry.setApplicationDestinationPrefixes("/app");
     }
@@ -67,7 +70,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     return message;
                 }
                 if (command == StompCommand.SUBSCRIBE
-                        && "/user/queue/messages".equals(accessor.getDestination()))
+                        && accessor.getDestination() != null
+                        && java.util.Set.of("/user/queue/messages", "/user/queue/read-receipts", "/user/queue/presence").contains(accessor.getDestination()))
                     return message;
                 throw new AccessDeniedException("Thao tác không được phép.");
             }

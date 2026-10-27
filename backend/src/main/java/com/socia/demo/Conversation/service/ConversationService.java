@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.socia.demo.Common.Common;
 import com.socia.demo.Conversation.dtos.request.ConversationGroupRequest;
@@ -17,11 +16,9 @@ import com.socia.demo.Conversation.model.Conversation;
 import com.socia.demo.Conversation.model.ConversationParticipant;
 import com.socia.demo.Conversation.repository.ConversationRepository;
 import com.socia.demo.Enum.ConversationType;
-import com.socia.demo.Enum.FriendRequestStatus;
 import com.socia.demo.Enum.ParticipantRole;
 import com.socia.demo.User.model.User;
 import com.socia.demo.User.repository.UserRepository;
-import com.socia.demo.User.repository.FriendRequestRepository;
 import com.socia.demo.User.service.UploadThingStorage;
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +29,6 @@ public class ConversationService {
     private final ConversationRepository conversations;
     private final ConversationMapper mapper;
     private final UserRepository users;
-    private final FriendRequestRepository friendships;
     private final UploadThingStorage storage;
     private final Common common;
 
@@ -65,12 +61,7 @@ public class ConversationService {
         for (UUID id : ids) {
             User member = users.findById(id)
                     .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND, "Không tìm thấy thành viên."));
-            boolean friends = friendships.findBySenderIdAndReceiverId(me.getId(), id)
-                    .filter(r -> r.getStatus() == FriendRequestStatus.ACCEPTED).isPresent()
-                    || friendships.findBySenderIdAndReceiverId(id, me.getId())
-                            .filter(r -> r.getStatus() == FriendRequestStatus.ACCEPTED).isPresent();
-            if (!friends)
-                throw Common.error(HttpStatus.FORBIDDEN, "Chỉ được thêm người đã kết bạn vào nhóm.");
+            common.requireFriendship(me.getId(), id);
             group.getParticipants().add(ConversationParticipant.builder().conversation(group).user(member)
                     .role(ParticipantRole.MEMBER).build());
         }

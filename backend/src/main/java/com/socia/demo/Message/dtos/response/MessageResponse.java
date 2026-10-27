@@ -16,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MessageResponse {
+    @Builder.Default
+    java.util.List<MessageReadResponse> reads = java.util.List.of();
     UUID id;
     UUID conversationId;
     UUID senderId;

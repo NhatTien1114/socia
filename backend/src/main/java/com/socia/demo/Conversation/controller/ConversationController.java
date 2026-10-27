@@ -29,6 +29,9 @@ import com.socia.demo.Conversation.dtos.request.ConversationGroupRequest;
 import com.socia.demo.Conversation.dtos.response.ConversationResponse;
 import com.socia.demo.Message.dtos.response.MessagePageResponse;
 import com.socia.demo.Message.dtos.response.MessageResponse;
+import com.socia.demo.Message.dtos.request.MarkMessagesReadRequest;
+import com.socia.demo.Message.dtos.response.ReadReceiptBatch;
+import com.socia.demo.Message.service.MessageReadService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,14 @@ import lombok.experimental.FieldDefaults;
 public class ConversationController {
     private final ChatService chatService;
     private final ConversationService conversationService;
+    private final MessageReadService reads;
+
+    @PostMapping("/{conversationId}/reads")
+    public ReadReceiptBatch markRead(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID conversationId,
+            @Valid @RequestBody MarkMessagesReadRequest request) {
+        return reads.mark(jwt.getSubject(), conversationId, request.messageIds());
+    }
 
     @GetMapping("/bootstrap")
     public BootstrapResponse bootstrap(
