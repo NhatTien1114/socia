@@ -19,7 +19,7 @@ export function ChatHeader({ conversation, onToggleInfo, onBack }: Props) {
     ? `${participants.length + 1} thành viên`
     : isOnline
       ? 'Đang hoạt động'
-      : 'Trò chuyện riêng tư'
+      : participants[0].presenceKnown ? 'Không hoạt động' : 'Chưa rõ trạng thái'
 
   return (
     <header

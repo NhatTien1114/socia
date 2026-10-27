@@ -2,6 +2,10 @@ import { API_BASE_URL, apiRequest } from '@/lib/api'
 import type { ChatApi } from '../types/chatApi.types'
 
 export const chatApi: ChatApi = {
+  presence: () => apiRequest('/presence'),
+  markRead: (id, messageIds) => apiRequest(`/conversations/${id}/reads`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messageIds }),
+  }),
   groups: () => apiRequest('/conversations/groups'),
   createGroup: (request, avatar) => {
     if (!avatar) return apiRequest('/conversations/groups', {

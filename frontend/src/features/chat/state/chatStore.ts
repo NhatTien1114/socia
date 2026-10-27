@@ -1,4 +1,4 @@
-import type { ChatApi, ChatMessage, ChatRoom, ChatUser } from '../types/chatApi.types.ts'
+import type { ChatApi, ChatMessage, ChatRoom, ChatUser, MessageRead, ReadReceiptBatch, Presence } from '../types/chatApi.types.ts'
 
 export type History = {
   items: ChatMessage[]
@@ -8,6 +8,7 @@ export type History = {
   error: string
 }
 export type ChatState = {
+  presenceByUserId: Record<string, Presence>
   me: ChatUser | null
   friends: ChatUser[]
   rooms: ChatRoom[]
@@ -36,8 +37,18 @@ export function compareMessages(a: ChatMessage, b: ChatMessage) {
 }
 export function mergeMessages(current: ChatMessage[], incoming: ChatMessage[]) {
   const unique = new Map(current.map(message => [message.id, message]))
-  incoming.forEach(message => unique.set(message.id, message))
+  incoming.forEach(message => unique.set(message.id, {
+    ...message, reads: mergeReads(unique.get(message.id)?.reads ?? [], message.reads ?? []),
+  }))
   return [...unique.values()].sort(compareMessages)
+}
+export function mergeReads(current: MessageRead[], incoming: MessageRead[]) {
+  const result = new Map(current.map(read => [read.readerId, read]))
+  for (const read of incoming) {
+    const previous = result.get(read.readerId)
+    if (!previous || read.readAt < previous.readAt) result.set(read.readerId, read)
+  }
+  return [...result.values()]
 }
 export function errorText(error: unknown) {
   return error instanceof Error ? error.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.'
@@ -50,9 +61,13 @@ export class ChatStore {
   private alive = false
   private bootstrapVersion = 0
   private historyVersions = new Map<string, number>()
+  private receipts: Record<string, Record<string, MessageRead[]>> = {}
+  private presenceGeneration = 0
+  private presenceRequest = 0
+  private presenceEpoch: string | null = null
   private seen = new Set<string>()
   private state: ChatState = {
-    me: null, friends: [], rooms: [], histories: {}, latest: {}, unread: {},
+    presenceByUserId: {}, me: null, friends: [], rooms: [], histories: {}, latest: {}, unread: {},
     activeId: null, loading: true, opening: false, error: '', expired: false,
     connection: 'connecting',
   }
@@ -89,13 +104,16 @@ export class ChatStore {
     this.run++
   }
   expire() {
-    this.update({ expired: true, connection: 'offline', error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' })
+    this.presenceGeneration++
+    this.update({ expired: true, connection: 'offline', presenceByUserId: {}, error: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' })
   }
   clearError = () => this.update({ error: '' })
   updateMe = (me: ChatUser) => this.update({ me })
   connection = (connection: ChatState['connection']) => {
     if (!this.alive) return
-    this.update({ connection })
+    this.presenceGeneration++
+    this.presenceEpoch = null
+    this.update({ connection, presenceByUserId: {} })
     if (connection === 'connected') {
       void this.refresh()
       if (this.state.activeId) void this.loadHistory(this.state.activeId)
@@ -114,6 +132,7 @@ export class ChatStore {
         if (!rooms.some(item => item.id === room.id)) rooms.push(room)
       }
       this.update({ me: data.me, friends: data.friends, rooms, loading: false, error: '' })
+      void this.refreshPresence()
       // Bootstrap does not include previews; fetch only one message per room,
       // with bounded concurrency, rather than every conversation's history.
       const queue = [...rooms]
@@ -144,6 +163,7 @@ export class ChatStore {
   }
   receive = (message: ChatMessage) => {
     if (!this.alive || this.state.expired) return
+    message = this.withReads(message)
     const id = message.conversationId
     const duplicate = this.seen.has(message.id)
     this.seen.add(message.id)
@@ -189,7 +209,7 @@ export class ChatStore {
       if (!this.alive || run !== this.run || this.historyVersions.get(id) !== version) return
       page.items.forEach(message => this.seen.add(message.id))
       this.history(id, {
-        items: mergeMessages(page.items, this.state.histories[id]?.items ?? []),
+        items: mergeMessages(page.items.map(this.withReads), this.state.histories[id]?.items ?? []),
         nextBefore: page.nextBefore, loading: false,
       })
       page.items.forEach(message => this.preview(message))
@@ -210,12 +230,65 @@ export class ChatStore {
       if (!this.alive || run !== this.run || version !== this.historyVersions.get(id)) return
       page.items.forEach(message => this.seen.add(message.id))
       this.history(id, {
-        items: mergeMessages(this.state.histories[id].items, page.items),
+        items: mergeMessages(this.state.histories[id].items, page.items.map(this.withReads)),
         nextBefore: page.nextBefore, loadingOlder: false,
       })
     } catch (error) {
       if (this.alive && run === this.run && version === this.historyVersions.get(id)) {
         this.history(id, { loadingOlder: false, error: this.failed(error) })
+      }
+    }
+  }
+  private withReads = (message: ChatMessage): ChatMessage => {
+    const room = this.receipts[message.conversationId] ??= {}
+    const reads = mergeReads(room[message.id] ?? [], message.reads ?? [])
+    room[message.id] = reads
+    return { ...message, reads }
+  }
+  applyReadReceipts = (batch: ReadReceiptBatch) => {
+    if (!this.alive || this.state.expired) return
+    const room = this.receipts[batch.conversationId] ??= {}
+    for (const read of batch.reads) room[read.messageId] = mergeReads(room[read.messageId] ?? [], [read])
+    const history = this.state.histories[batch.conversationId]
+    if (history) this.history(batch.conversationId, { items: history.items.map(this.withReads) })
+  }
+  markRead = async (id: string, ids: string[]) => {
+    if (!this.alive || this.state.expired) return
+    const run = this.run
+    try {
+      const batch = await this.api.markRead(id, ids)
+      if (this.alive && !this.state.expired && run === this.run) this.applyReadReceipts(batch)
+    } catch (error) {
+      if (this.alive && run === this.run) this.failed(error)
+      throw error
+    }
+  }
+  applyPresence = (presence: Presence) => {
+    if (!this.alive || this.state.expired || this.state.connection !== 'connected') return
+    if (this.presenceEpoch && this.presenceEpoch !== presence.epoch) return
+    this.presenceEpoch = presence.epoch
+    const previous = this.state.presenceByUserId[presence.userId]
+    if (previous && previous.version > presence.version) return
+    this.update({ presenceByUserId: { ...this.state.presenceByUserId, [presence.userId]: presence } })
+  }
+  refreshPresence = async () => {
+    if (this.state.connection !== 'connected' || this.state.expired) return
+    const run = this.run, generation = this.presenceGeneration, request = ++this.presenceRequest
+    try {
+      const snapshot = await this.api.presence()
+      if (!this.alive || this.state.expired || run !== this.run || generation !== this.presenceGeneration || request !== this.presenceRequest) return
+      const next: Record<string, Presence> = {}
+      for (const presence of snapshot) {
+        if (this.presenceEpoch && this.presenceEpoch !== presence.epoch) continue
+        this.presenceEpoch = presence.epoch
+        const previous = this.state.presenceByUserId[presence.userId]
+        next[presence.userId] = previous && previous.version > presence.version ? previous : presence
+      }
+      this.update({ presenceByUserId: next })
+    } catch (error) {
+      if (this.alive && run === this.run && generation === this.presenceGeneration && request === this.presenceRequest) {
+        this.failed(error)
+        this.update({ presenceByUserId: {} })
       }
     }
   }

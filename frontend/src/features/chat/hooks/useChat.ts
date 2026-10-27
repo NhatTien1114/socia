@@ -4,7 +4,7 @@ import { ApiError, SESSION_EXPIRED_EVENT, notifySessionExpired } from '@/lib/api
 import { getSession } from '@/features/auth/services/authApi'
 import { chatApi, websocketUrl } from '../services/chatApi'
 import { ChatStore } from '../state/chatStore'
-import type { ChatMessage } from '../types/chatApi.types'
+import type { ChatMessage, ReadReceiptBatch, Presence } from '../types/chatApi.types'
 
 export function useChat() {
   const [store] = useState(() => new ChatStore(chatApi))
@@ -47,10 +47,30 @@ export function useChat() {
         if (disposed) return
         try {
           const message = JSON.parse(frame.body) as ChatMessage
-          if (typeof message.id === 'string' && typeof message.conversationId === 'string'
+          if (message && typeof message.id === 'string' && typeof message.conversationId === 'string'
               && typeof message.senderId === 'string' && typeof message.content === 'string'
-              && typeof message.createdAt === 'string') store.receive(message)
+              && typeof message.createdAt === 'string' && Array.isArray(message.reads)
+              && message.reads.every(read => read && typeof read.readerId === 'string'
+                && typeof read.readAt === 'string')) store.receive(message)
         } catch { /* Recover history through REST on reconnect/focus. */ }
+      })
+      client.subscribe('/user/queue/read-receipts', frame => {
+        if (disposed) return
+        try {
+          const batch = JSON.parse(frame.body) as ReadReceiptBatch
+          if (batch && typeof batch.conversationId === 'string' && Array.isArray(batch.reads)
+              && batch.reads.every(read => read && typeof read.messageId === 'string'
+                && typeof read.readerId === 'string' && typeof read.readAt === 'string')) store.applyReadReceipts(batch)
+        } catch { /* REST recovers missed receipts. */ }
+      })
+      client.subscribe('/user/queue/presence', frame => {
+        if (disposed) return
+        try {
+          const value = JSON.parse(frame.body) as Presence
+          if (value && typeof value.userId === 'string' && typeof value.online === 'boolean'
+              && typeof value.epoch === 'string' && Number.isSafeInteger(value.version) && value.version >= 0
+              && (value.lastSeenAt === null || typeof value.lastSeenAt === 'string')) store.applyPresence(value)
+        } catch { /* REST recovers presence. */ }
       })
       store.connection('connected')
     }
@@ -67,6 +87,7 @@ export function useChat() {
     }
     window.addEventListener(SESSION_EXPIRED_EVENT, expire)
     window.addEventListener('online', recover)
+    window.addEventListener('focus', recover)
     document.addEventListener('visibilitychange', recover)
     client.activate()
     return () => {
@@ -75,6 +96,7 @@ export function useChat() {
       unsubscribe()
       window.removeEventListener(SESSION_EXPIRED_EVENT, expire)
       window.removeEventListener('online', recover)
+      window.removeEventListener('focus', recover)
       document.removeEventListener('visibilitychange', recover)
       store.stop()
       void client.deactivate()

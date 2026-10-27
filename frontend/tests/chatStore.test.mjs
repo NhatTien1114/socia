@@ -8,7 +8,7 @@ const friend = { id: 'friend', username: 'Bob', avatar: null }
 const room = { id: 'room', friend }
 const msg = (id, overrides = {}) => ({
   id, conversationId: 'room', senderId: 'friend', content: id,
-  createdAt: '2026-10-03T12:00:00.123456', ...overrides,
+  reads: [], createdAt: '2026-10-03T12:00:00.123456', ...overrides,
 })
 function deferred() {
   let resolve, reject
@@ -17,6 +17,8 @@ function deferred() {
 }
 async function setup(overrides = {}) {
   const api = {
+    presence: async () => [],
+    markRead: async (conversationId, ids) => ({ conversationId, reads: ids.map(messageId => ({ messageId, readerId: me.id, readAt: "2026-10-27T00:00:00Z" })) }),
     bootstrap: async () => ({ me, friends: [friend], conversation: [room] }),
     history: async () => ({ items: [], nextBefore: null }),
     open: async () => room,
@@ -188,5 +190,98 @@ test('a late bootstrap response cannot clear an expired-session notification', a
   await refresh
   assert.equal(store.getSnapshot().expired, true)
   assert.match(store.getSnapshot().error, /hết hạn/)
+  store.stop()
+})
+
+
+test('receipt before message survives stale REST, duplicate events and history reload', async () => {
+  const { store, api } = await setup()
+  const receipt = { conversationId: 'room', reads: [{ messageId: 'sent', readerId: 'friend', readAt: '2026-10-27T00:00:00Z' }] }
+  store.applyReadReceipts(receipt)
+  store.applyReadReceipts(receipt)
+  api.history = async () => ({ items: [msg('sent', { senderId: 'me', reads: [] })], nextBefore: null })
+  await store.loadHistory('room')
+  store.receive(msg('sent', { senderId: 'me', reads: [] }))
+  await store.loadHistory('room')
+  assert.equal(store.getSnapshot().histories.room.items[0].reads.length, 1)
+  assert.equal(store.getSnapshot().histories.room.items[0].reads[0].readerId, 'friend')
+  store.stop()
+})
+
+test('late read response remains in the original room and failed reads can retry', async () => {
+  const { store, api } = await setup()
+  api.history = async id => ({ items: [msg('incoming', { conversationId: id })], nextBefore: null })
+  await store.loadHistory('room')
+  const pending = deferred()
+  api.markRead = () => pending.promise
+  const marking = store.markRead('room', ['incoming'])
+  store.select('other')
+  pending.resolve({ conversationId: 'room', reads: [{ messageId: 'incoming', readerId: 'me', readAt: '2026-10-27T00:00:00Z' }] })
+  await marking
+  await setImmediate()
+  assert.equal(store.getSnapshot().histories.room.items[0].reads.length, 1)
+  assert.equal(store.getSnapshot().histories.other.items[0].reads.length, 0)
+  api.markRead = async () => { throw new Error('offline') }
+  await assert.rejects(store.markRead('other', ['incoming']))
+  assert.equal(store.getSnapshot().histories.other.items[0].reads.length, 0)
+  store.stop()
+})
+
+const presence = (version, online = true, epoch = 'boot-1') => ({ userId: 'friend', online, version, epoch, lastSeenAt: null })
+test('presence ignores old versions and snapshot cannot overwrite a newer event', async () => {
+  const { store, api } = await setup()
+  store.connection('connected')
+  await setImmediate()
+  const pending = deferred()
+  api.presence = () => pending.promise
+  const refresh = store.refreshPresence()
+  store.applyPresence(presence(2))
+  store.applyPresence(presence(1, false))
+  pending.resolve([presence(1, false)])
+  await refresh
+  assert.equal(store.getSnapshot().presenceByUserId.friend.online, true)
+  assert.equal(store.getSnapshot().presenceByUserId.friend.version, 2)
+  store.connection('offline')
+  assert.deepEqual(store.getSnapshot().presenceByUserId, {})
+  store.stop()
+})
+
+test('reconnect drops old requests, accepts new epoch, and removes users outside snapshot', async () => {
+  const { store, api } = await setup()
+  store.connection('connected')
+  await setImmediate()
+  const old = deferred()
+  api.presence = () => old.promise
+  const refresh = store.refreshPresence()
+  store.applyPresence(presence(100))
+  store.connection('offline')
+  api.presence = async () => [presence(1, false, 'boot-2')]
+  store.connection('connected')
+  await setImmediate()
+  old.resolve([presence(101)])
+  await refresh
+  assert.equal(store.getSnapshot().presenceByUserId.friend.epoch, 'boot-2')
+  assert.equal(store.getSnapshot().presenceByUserId.friend.online, false)
+  api.presence = async () => []
+  await store.refreshPresence()
+  assert.deepEqual(store.getSnapshot().presenceByUserId, {})
+  store.stop()
+})
+
+test('expiry clears presence and pending reads cannot update expired state', async () => {
+  const { store, api } = await setup()
+  store.connection('connected')
+  await setImmediate()
+  store.applyPresence(presence(1))
+  api.history = async () => ({ items: [msg('incoming')], nextBefore: null })
+  await store.loadHistory('room')
+  const pending = deferred()
+  api.markRead = () => pending.promise
+  const marking = store.markRead('room', ['incoming'])
+  store.expire()
+  pending.resolve({ conversationId: 'room', reads: [{ messageId: 'incoming', readerId: 'me', readAt: '2026-10-27T00:00:00Z' }] })
+  await marking
+  assert.deepEqual(store.getSnapshot().presenceByUserId, {})
+  assert.equal(store.getSnapshot().histories.room.items[0].reads.length, 0)
   store.stop()
 })

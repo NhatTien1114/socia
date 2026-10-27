@@ -3,6 +3,7 @@ export type User = {
   name: string
   avatar: string
   online: boolean
+  presenceKnown?: boolean
   phone?: string
 }
 
@@ -11,6 +12,7 @@ export type MessageType = 'text' | 'image' | 'voice' | 'file'
 export type Message = {
   id: string
   senderId: string
+  readByIds: string[]
   type: MessageType
   content: string // text | image URL | voice duration | file name
   fileSize?: string // for file type

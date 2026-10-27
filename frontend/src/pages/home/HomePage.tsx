@@ -35,7 +35,7 @@ export function HomePage() {
   const conversations: Conversation[] = rooms.map(room => ({
     id: room.id,
     participants: room.conversationType === 'GROUP'
-      ? room.participants.filter(user => user.id !== state.me?.id).map(toUser) : [toUser(room.friend)],
+      ? room.participants.filter(user => user.id !== state.me?.id).map(user => toUser(user, state.presenceByUserId[user.id])) : [toUser(room.friend, state.presenceByUserId[room.friend.id])],
     isGroup: room.conversationType === 'GROUP',
     groupName: room.conversationType === 'GROUP' ? room.name : undefined,
     groupAvatar: room.conversationType === 'GROUP' ? room.avatar ?? undefined : undefined,
@@ -94,6 +94,8 @@ export function HomePage() {
                   onNewChat={() => { store.clearError(); void store.refresh(); setShowNewChat(true) }} />
               </div>
               {active && me ? <ChatArea key={active.id} conversation={active} me={me}
+                onMessagesVisible={ids => store.markRead(active.id, ids)}
+                readEnabled={!state.expired && !showInfo && !showCreateGroup && !showNewChat && !showAddFriend && !accountView}
                 history={state.histories[active.id] ?? emptyHistory()} disabled={state.expired}
                 onToggleInfo={() => setShowInfo(value => !value)} onBack={() => store.select(null)}
                 onSend={text => store.send(active.id, text)} onLoadOlder={() => store.loadOlder(active.id)}

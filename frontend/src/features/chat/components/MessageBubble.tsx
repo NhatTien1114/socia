@@ -1,14 +1,18 @@
-import type { Message } from '@/features/chat/types/chat.types'
+import type { Message, User } from '@/features/chat/types/chat.types'
+import { avatarFor } from '../utils/chatView'
 
 type Props = {
   message: Message
+  participants?: User[]
   isMine: boolean
   showAvatar: boolean
   senderAvatar?: string
   senderName?: string
 }
 
-export function MessageBubble({ message, isMine, showAvatar, senderAvatar, senderName }: Props) {
+export function MessageBubble({ message, isMine, participants = [], showAvatar, senderAvatar, senderName }: Props) {
+  const readers = [...new Set((message.readByIds ?? []).filter(id => id !== message.senderId))]
+    .map(id => participants.find(user => user.id === id) ?? { id, name: 'Thành viên', avatar: avatarFor('?') })
   return (
     <div className={`flex gap-2.5 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${showAvatar ? 'mt-3' : 'mt-0.5'}`}>
       {/* Avatar */}
@@ -66,6 +70,13 @@ export function MessageBubble({ message, isMine, showAvatar, senderAvatar, sende
         >
           {message.timestamp}
         </span>
+        {isMine && (readers.length > 0
+          ? <div className="mt-1 flex flex-wrap justify-end gap-1" role="group" aria-label="Người đã xem">
+              {readers.map(reader => <img key={reader.id} src={reader.avatar || avatarFor(reader.name)}
+                alt={`${reader.name} đã xem`} title={`${reader.name} đã xem`}
+                className="size-4 rounded-full object-cover" />)}
+            </div>
+          : <span className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-secondary)' }}>Đã gửi</span>)}
       </div>
     </div>
   )

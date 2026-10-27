@@ -1,9 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
 import type { Message, User } from '@/features/chat/types/chat.types'
 import { formatDate } from '@/utils/date'
+import { useVisibleMessages } from '../hooks/useVisibleMessages'
 import { MessageBubble } from './MessageBubble'
 
 type Props = {
+  readEnabled?: boolean
+  onMessagesVisible?: (ids: string[]) => Promise<void>
   messages: Message[]
   participants: User[]
   currentUserId: string
@@ -13,9 +16,12 @@ type Props = {
   onLoadOlder: () => Promise<void>
 }
 
-export function MessageList({ messages, participants, currentUserId, loading, hasOlder, loadingOlder, onLoadOlder }: Props) {
+const ignoreVisible = async () => {}
+
+export function MessageList({ readEnabled = false, onMessagesVisible = ignoreVisible, messages, participants, currentUserId, loading, hasOlder, loadingOlder, onLoadOlder }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  useVisibleMessages(containerRef, messages, currentUserId, readEnabled, onMessagesVisible)
   const prepend = useRef<{ height: number; top: number } | null>(null)
   const nearBottom = useRef(true)
   const lastId = messages.at(-1)?.id
@@ -37,9 +43,9 @@ export function MessageList({ messages, participants, currentUserId, loading, ha
   const grouped = groupByDate(messages)
 
   return (
-    <div ref={containerRef} aria-label="Lịch sử tin nhắn" aria-busy={loading}
+    <div ref={containerRef} data-read-enabled={readEnabled} aria-label="Lịch sử tin nhắn" aria-busy={loading}
       onScroll={() => { const el = containerRef.current; if (el) nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100 }}
-      className="chat-history scrollbar-thin min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5">
+      className="chat-history scrollbar-thin min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5 ">
       {hasOlder && <button onClick={() => void loadOlder()} disabled={loading || loadingOlder}
         className="mx-auto mb-4 block rounded-full px-4 py-2 text-xs disabled:opacity-50"
         style={{ background: 'var(--color-primary-pale)', color: 'var(--color-primary)' }}>
@@ -66,14 +72,16 @@ export function MessageList({ messages, participants, currentUserId, loading, ha
             const sender = participants.find((p) => p.id === msg.senderId)
 
             return (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                isMine={isMine}
-                showAvatar={showAvatar}
-                senderAvatar={sender?.avatar}
-                senderName={sender?.name}
-              />
+              <div key={msg.id} data-message-id={msg.id}>
+                <MessageBubble
+                  participants={participants}
+                  message={msg}
+                  isMine={isMine}
+                  showAvatar={showAvatar}
+                  senderAvatar={sender?.avatar}
+                  senderName={sender?.name}
+                />
+              </div>
             )
           })}
         </div>

@@ -216,3 +216,114 @@ test('home integrates bootstrap, friend selection, room creation and REST send w
     globalThis.WebSocket = originalWebSocket
   }
 })
+
+
+test('read receipts display reader avatars once and unread outgoing messages display sent', () => {
+  const message = { id: 'm', senderId: 'me', content: 'Hello', type: 'text', timestamp: '10:00', date: '2026-10-27', readByIds: [] }
+  const participants = [
+    { id: 'bob', name: 'Bob', avatar: '/bob.png', online: true },
+    { id: 'carol', name: 'Carol', avatar: '/carol.png', online: false },
+  ]
+  const view = render(h(MessageBubble, { message, participants, isMine: true, showAvatar: true }))
+  assert.equal(view.container.querySelector('[role="group"]'), null)
+  view.rerender(h(MessageBubble, { message: { ...message, readByIds: ['bob', 'carol', 'bob', 'me'] }, participants, isMine: true, showAvatar: true }))
+  const avatars = view.container.querySelectorAll('[role="group"] img')
+  assert.equal(avatars.length, 2)
+  assert.equal(avatars[0].getAttribute('src'), '/bob.png')
+  assert.match(avatars[0].getAttribute('title'), /Bob/)
+  assert.equal(avatars[1].getAttribute('src'), '/carol.png')
+  view.rerender(h(MessageBubble, { message: { ...message, readByIds: ['bob'] }, participants, isMine: false, showAvatar: true }))
+  assert.equal(view.container.querySelector('[role="group"]'), null)
+})
+
+test('visible reads require focus, wait for debounce, batch at 100, and stop on unmount', async () => {
+  const originalObserver = globalThis.IntersectionObserver
+  const originalRects = dom.window.HTMLElement.prototype.getClientRects
+  const originalFocus = document.hasFocus
+  let focused = false, callback
+  const observed = new Set()
+  globalThis.IntersectionObserver = class {
+    constructor(fn) { callback = fn }
+    observe(el) { observed.add(el) }
+    disconnect() { observed.clear() }
+  }
+  dom.window.HTMLElement.prototype.getClientRects = () => [{ width: 100, height: 100 }]
+  document.hasFocus = () => focused
+  Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+  const sent = []
+  const messages = Array.from({ length: 102 }, (_, i) => ({ id: String(i), senderId: 'bob', content: String(i), type: 'text', timestamp: '10:00', date: '2026-10-27', readByIds: [] }))
+  const props = { messages, participants: [], currentUserId: 'me', loading: false, hasOlder: false, loadingOlder: false,
+    onLoadOlder: async () => {}, readEnabled: true, onMessagesVisible: async ids => { sent.push(ids) } }
+  try {
+    const view = render(h(MessageList, props))
+    const entries = [...observed].map(target => ({ target, isIntersecting: true, intersectionRatio: 0.1 }))
+    callback(entries)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)) })
+    assert.equal(sent.length, 0)
+    focused = true
+    fireEvent.focus(window)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)) })
+    assert.equal(sent[0].length, 100)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)) })
+    assert.equal(sent[1].length, 2)
+    callback(entries)
+    view.unmount()
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)) })
+    assert.equal(sent.length, 2)
+  } finally {
+    cleanup()
+    globalThis.IntersectionObserver = originalObserver
+    dom.window.HTMLElement.prototype.getClientRects = originalRects
+    document.hasFocus = originalFocus
+  }
+})
+
+
+test('hidden tabs, covered chats and messages outside the viewport are not marked read', async () => {
+  const originalObserver = globalThis.IntersectionObserver
+  const originalRects = dom.window.HTMLElement.prototype.getClientRects
+  const originalFocus = document.hasFocus
+  const originalVisibility = Object.getOwnPropertyDescriptor(document, 'visibilityState')
+  let callback
+  globalThis.IntersectionObserver = class {
+    constructor(fn) { callback = fn }
+    observe() {}
+    disconnect() {}
+  }
+  dom.window.HTMLElement.prototype.getClientRects = () => [{ width: 100, height: 100 }]
+  document.hasFocus = () => true
+  Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+  const sent = []
+  const messages = [{ id: 'm', senderId: 'bob', content: 'Hi', type: 'text', timestamp: '10:00', date: '2026-10-27', readByIds: [] }]
+  const props = { messages, participants: [], currentUserId: 'me', loading: false, hasOlder: false, loadingOlder: false,
+    onLoadOlder: async () => {}, readEnabled: true, onMessagesVisible: async ids => { sent.push(ids) } }
+  const pause = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 350)) })
+  try {
+    const view = render(h(MessageList, props))
+    const target = view.container.querySelector('[data-message-id]')
+    callback([{ target, isIntersecting: true, intersectionRatio: 0.1 }])
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+    await pause()
+    assert.equal(sent.length, 0)
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+    view.rerender(h(MessageList, { ...props, readEnabled: false }))
+    fireEvent.focus(window)
+    await pause()
+    assert.equal(sent.length, 0)
+    view.rerender(h(MessageList, props))
+    callback([{ target, isIntersecting: false, intersectionRatio: 0 }])
+    fireEvent.focus(window)
+    await pause()
+    assert.equal(sent.length, 0)
+    callback([{ target, isIntersecting: true, intersectionRatio: 0.1 }])
+    await pause()
+    assert.deepEqual(sent, [['m']])
+  } finally {
+    cleanup()
+    globalThis.IntersectionObserver = originalObserver
+    dom.window.HTMLElement.prototype.getClientRects = originalRects
+    document.hasFocus = originalFocus
+    if (originalVisibility) Object.defineProperty(document, 'visibilityState', originalVisibility)
+    else delete document.visibilityState
+  }
+})
