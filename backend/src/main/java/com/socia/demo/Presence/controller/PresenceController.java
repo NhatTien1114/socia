@@ -1,13 +1,21 @@
-package com.socia.demo.Presence;
+package com.socia.demo.Presence.controller;
+
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
+
+import com.socia.demo.Presence.service.PresenceService;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import lombok.RequiredArgsConstructor;
-@RestController @RequiredArgsConstructor
+
+@RestController
+@RequiredArgsConstructor
 public class PresenceController {
     private final PresenceService presence;
-    @GetMapping("/presence") public List<PresenceService.State> snapshot(@AuthenticationPrincipal Jwt jwt) {
+
+    @GetMapping("/presence")
+    public List<PresenceService.State> snapshot(@AuthenticationPrincipal Jwt jwt) {
         return presence.snapshot(jwt.getSubject());
     }
 }
