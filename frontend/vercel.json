@@ -1,6 +1,11 @@
 {
     "rewrites": [{
-        "source": "/(.*)",
-        "destination": "/index.html"
-    }]
+            "source": "/socia/v1/:path*",
+            "destination": "https://socia-backend-z4bh.onrender.com/socia/v1/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
 }
