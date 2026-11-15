@@ -1,13 +1,13 @@
 package com.socia.demo.Conversation.repository;
 
 import java.util.*;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import com.socia.demo.Conversation.model.ConversationParticipant;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, UUID> {
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select p from ConversationParticipant p where p.conversation.id = :room and p.user.id = :user")
+    // Avoid FOR UPDATE OF <alias>, which fails on affected TiDB Cloud versions.
+    @Query(value = "select * from conversation_participants where conversation_id = :room and user_id = :user for update",
+            nativeQuery = true)
     Optional<ConversationParticipant> lockMember(@Param("room") UUID room, @Param("user") UUID user);
 }

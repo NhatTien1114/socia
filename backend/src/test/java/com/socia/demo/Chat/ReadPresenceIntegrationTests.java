@@ -72,6 +72,20 @@ class ReadPresenceIntegrationTests {
         }
 
         @Test
+        void openingDirectFromEitherSideReusesTheRoomAndBothParticipants() {
+                var fromAlice = chat.openDirect(alice.getUsername(), bob.getId());
+                var fromBob = chat.openDirect(bob.getUsername(), alice.getId());
+                assertThat(fromAlice.getId()).isEqualTo(room);
+                assertThat(fromBob.getId()).isEqualTo(room);
+                assertThat(fromAlice.getFriend().getId()).isEqualTo(bob.getId());
+                assertThat(fromBob.getFriend().getId()).isEqualTo(alice.getId());
+                assertThat(fromAlice.getParticipants()).extracting(p -> p.getId())
+                                .containsExactlyInAnyOrder(alice.getId(), bob.getId());
+                assertThat(chat.history(bob.getUsername(), room, null, 30).getItems())
+                                .extracting(m -> m.getId()).containsExactly(message);
+        }
+
+        @Test
         void repeatedReadsKeepFirstTimestampAndHistoryRestoresThem() {
                 assertThat(chat.history(bob.getUsername(), room, null, 30).getItems().getFirst().getReads()).isEmpty();
                 var first = reads.mark(bob.getUsername(), room, List.of(message, message));
