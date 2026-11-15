@@ -89,13 +89,29 @@ test('logout requests server-side cookie deletion and reports a failed logout', 
   await assert.rejects(logout(), error => error.status === 500)
 })
 
-test('restores session without localStorage and expires while idle', async () => {
+test('restores session without localStorage and expires while idle', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'] })
   localStorage.setItem('socia_access_token', 'legacy-token')
-  globalThis.fetch = async () => session(250)
-  render(h(Probe))
-  await waitFor(() => assert.equal(screen.getByRole('status').textContent, 'authenticated'))
+  globalThis.fetch = async () => session(60000)
+  await act(async () => { render(h(Probe)) })
+  assert.equal(screen.getByRole('status').textContent, 'authenticated')
   assert.equal(localStorage.getItem('socia_access_token'), null)
-  await waitFor(() => assert.equal(screen.getByRole('status').textContent, 'anonymous'))
+  await act(async () => { t.mock.timers.tick(60001) })
+  assert.equal(screen.getByRole('status').textContent, 'anonymous')
+  cleanup()
+})
+
+test('initial session check recovers after a temporary backend failure', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'] })
+  let calls = 0
+  globalThis.fetch = async () => ++calls === 1
+    ? Response.json({}, { status: 503 }) : session()
+  await act(async () => { render(h(Probe)) })
+  assert.equal(screen.getByRole('status').textContent, 'checking')
+  await act(async () => { t.mock.timers.tick(3000) })
+  assert.equal(screen.getByRole('status').textContent, 'authenticated')
+  assert.equal(calls, 2)
+  cleanup()
 })
 
 test('session check distinguishes missing cookie from unavailable backend', async () => {
@@ -105,7 +121,7 @@ test('session check distinguishes missing cookie from unavailable backend', asyn
   view.unmount()
   globalThis.fetch = async () => { throw new TypeError('offline') }
   render(h(Probe))
-  await waitFor(() => assert.equal(screen.getByRole('status').textContent, 'error'))
+  await waitFor(() => assert.equal(screen.getByRole('status').textContent, 'error'), { timeout: 8000 })
 })
 
 test('a stale session response cannot authenticate after another request returned 401', async () => {
@@ -146,6 +162,8 @@ test('protected page redirects to login and removes private UI when an idle sess
     close() { this.readyState = 3; this.onclose?.({}) }
   }
   globalThis.fetch = async url => url.endsWith('/session') ? session(500)
+    : url.endsWith('/csrf') ? csrf()
+    : url.endsWith('/ws-ticket') ? Response.json({ ticket: 'a'.repeat(43), url: '/socia/v1/ws' })
     : Response.json({ me: { id: 'me', username: 'Alice', avatar: null }, friends: [], conversation: [] })
   try {
     render(h(ThemeProvider, {}, h(App)))

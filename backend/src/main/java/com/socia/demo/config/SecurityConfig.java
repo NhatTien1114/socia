@@ -40,7 +40,8 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, CustomJwtDecoder decoder,
             AuthCookies cookies, CookieCsrfTokenRepository csrfRepository,
-            ObjectMapper json,
+            ObjectMapper json, WebSocketTickets tickets,
+            @Value("${app.frontend-origin:http://localhost:5173}") String origin,
             @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource) throws Exception {
         AccessDeniedHandler denied = (request, response, exception) -> {
             response.setStatus(403);
@@ -77,7 +78,7 @@ public class SecurityConfig {
                             json.writeValue(response.getOutputStream(), Map.of(
                                     "code", "UNAUTHENTICATED", "message", "Vui lòng đăng nhập lại."));
                         }))
-                .addFilterBefore(new CookieAuthenticationFilter(decoder, cookies),
+                .addFilterBefore(new CookieAuthenticationFilter(decoder, cookies, tickets, origin),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

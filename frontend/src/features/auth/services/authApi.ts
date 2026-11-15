@@ -4,9 +4,9 @@ import type { AuthenticationResponse, LoginPayload, RegisterPayload } from '../t
 export type Session = { authenticated: true; username: string; expiresAt: string; serverTime: string }
 export type SessionTiming = Session & { deadline: number }
 
-export async function getSession(): Promise<SessionTiming> {
+export async function getSession(options: { timeoutMs?: number } = {}): Promise<SessionTiming> {
   const started = Date.now()
-  const data = await apiRequest<Session>('/auth/session')
+  const data = await apiRequest<Session>('/auth/session', options)
   const remaining = Date.parse(data.expiresAt) - Date.parse(data.serverTime)
   if (data.authenticated !== true || !Number.isFinite(remaining)) {
     throw new Error('Phản hồi phiên đăng nhập không hợp lệ.')

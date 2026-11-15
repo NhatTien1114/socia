@@ -30,7 +30,7 @@ function App() {
   }, [])
 
   // Chưa đăng nhập → chỉ cho phép /login và /register
-  if (session.status === 'checking') return <p role="status" className="p-6">Đang kiểm tra phiên đăng nhập…</p>
+  if (session.status === 'checking') return <p role="status" className="p-6">Đang kết nối máy chủ… Lần mở đầu sau một thời gian không sử dụng có thể mất khoảng một phút.</p>
   if (session.status === 'error') return <div className="p-6">
     <p role="alert">{session.error}</p>
     <button onClick={session.retry}>Thử lại</button>

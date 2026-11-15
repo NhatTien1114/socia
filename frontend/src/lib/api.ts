@@ -36,11 +36,11 @@ async function csrfToken(): Promise<Csrf> {
   return csrfRequest
 }
 
-type Options = RequestInit & { publicRequest?: boolean }
+type Options = RequestInit & { publicRequest?: boolean; timeoutMs?: number }
 
 // The browser owns the HttpOnly authentication cookie. JavaScript never reads it.
 export async function apiRequest<T>(path: string, options: Options = {}): Promise<T> {
-  const { publicRequest = false, ...init } = options
+  const { publicRequest = false, timeoutMs = 15000, ...init } = options
   const method = (init.method ?? 'GET').toUpperCase()
   const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes(method)
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -53,11 +53,11 @@ export async function apiRequest<T>(path: string, options: Options = {}): Promis
     try {
       response = await fetch(`${API_BASE_URL}${path}`, {
         ...init, method, headers, credentials: 'include', cache: 'no-store',
-        signal: init.signal ?? AbortSignal.timeout(15000),
+        signal: init.signal ?? AbortSignal.timeout(timeoutMs),
       })
     } catch (error) {
       if (init.signal?.aborted) throw error
-      throw new Error('Không kết nối được máy chủ hoặc yêu cầu quá thời gian. Vui lòng thử lại.', { cause: error })
+      throw new ApiError('Không kết nối được máy chủ hoặc yêu cầu quá thời gian. Vui lòng thử lại.', 0)
     }
     if (response.status === 401 && !publicRequest) notifySessionExpired()
     const data = response.status === 204 ? null : await response.json().catch(() => null)

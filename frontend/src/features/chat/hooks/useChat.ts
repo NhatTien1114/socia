@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Client } from '@stomp/stompjs'
 import { ApiError, SESSION_EXPIRED_EVENT, notifySessionExpired } from '@/lib/api'
 import { getSession } from '@/features/auth/services/authApi'
-import { chatApi, websocketUrl } from '../services/chatApi'
+import { chatApi, websocketUrl, websocketTicket } from '../services/chatApi'
 import { ChatStore } from '../state/chatStore'
 import type { ChatMessage, ReadReceiptBatch, Presence } from '../types/chatApi.types'
 
@@ -13,15 +13,24 @@ export function useChat() {
     store.start()
     let disposed = false
     let expiryTimer: ReturnType<typeof setTimeout> | undefined
+    let retryTimer: ReturnType<typeof setTimeout> | undefined
+    let socketTicket: Awaited<ReturnType<typeof websocketTicket>> | undefined
     const client = new Client({
       brokerURL: websocketUrl(), reconnectDelay: 3000, connectionTimeout: 10000,
       heartbeatIncoming: 10000, heartbeatOutgoing: 10000,
+      webSocketFactory: () => {
+        if (!socketTicket) throw new Error('WebSocket authorization unavailable')
+        const { ticket, url } = socketTicket
+        socketTicket = undefined
+        return new WebSocket(websocketUrl(url), ['v12.stomp', `socia-ticket.${ticket}`])
+      },
     })
     const expire = () => {
       if (!disposed) { store.expire(); void client.deactivate() }
     }
-    // HTTP handshake sends the HttpOnly cookie automatically. No JWT in STOMP headers.
+    // A one-use ticket permits direct Render connections without cross-site cookies.
     client.beforeConnect = async () => {
+      socketTicket = undefined
       if (disposed || store.getSnapshot().expired) { void client.deactivate(); return }
       try {
         const session = await getSession()
@@ -32,13 +41,23 @@ export function useChat() {
         expiryTimer = setTimeout(() => {
           if (!disposed) notifySessionExpired()
         }, Math.min(remaining, 2_147_483_647))
+        socketTicket = await websocketTicket()
+        if (disposed || store.getSnapshot().expired) {
+          socketTicket = undefined
+          void client.deactivate()
+          return
+        }
         store.connection('connecting')
       } catch (error) {
         if (disposed) return
         if (error instanceof ApiError && error.status === 401) expire()
-        else store.connection('offline')
-        // A network failure alone is not proof that the session expired.
-        // The handshake can still proceed; STOMP retries closed connections.
+        else {
+          store.connection('offline')
+          await client.deactivate()
+          if (!disposed && !store.getSnapshot().expired) retryTimer = setTimeout(() => {
+            if (!disposed && !store.getSnapshot().expired) client.activate()
+          }, 3000)
+        }
       }
     }
     client.onConnect = () => {
@@ -93,6 +112,7 @@ export function useChat() {
     return () => {
       disposed = true
       clearTimeout(expiryTimer)
+      clearTimeout(retryTimer)
       unsubscribe()
       window.removeEventListener(SESSION_EXPIRED_EVENT, expire)
       window.removeEventListener('online', recover)

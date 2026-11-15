@@ -30,12 +30,15 @@ test('home lists groups beside direct chats and opens group history, info and co
   const friend = { id: 'friend', username: 'Bob', avatar: null }
   const group = { id: 'group', conversationType: 'GROUP', name: 'Study group', avatar: '/group.png', participants: [me, friend] }
   const sent = []
+  const sockets = []
   globalThis.WebSocket = class {
+    constructor(url, protocols) { sockets.push({ url, protocols }) }
     readyState = 0
     close() { this.readyState = 3; this.onclose?.({}) }
   }
   globalThis.fetch = async (url, options = {}) => {
     if (url.endsWith('/auth/csrf')) return Response.json({ token: 'csrf-test', headerName: 'X-XSRF-TOKEN' })
+    if (url.endsWith('/auth/ws-ticket')) return Response.json({ ticket: 'a'.repeat(43), url: 'https://backend.example/socia/v1/ws' })
     if (url.endsWith('/auth/session')) return Response.json({ authenticated: true, username: 'Alice', serverTime: new Date().toISOString(), expiresAt: new Date(Date.now() + 3600000).toISOString() })
     if (url.endsWith('/bootstrap')) return Response.json({ me, friends: [friend], conversation: [{ id: 'direct', friend }, group] })
     if (options.method === 'POST') {
@@ -59,6 +62,8 @@ test('home lists groups beside direct chats and opens group history, info and co
     await user.click(screen.getByRole('button', { name: 'Gửi' }))
     await waitFor(() => assert.ok(within(chat).getByText('Hello group')))
     assert.ok(sent[0].endsWith('/conversations/group/messages'))
+    await waitFor(() => assert.equal(sockets.length, 1))
+    assert.deepEqual(sockets[0], { url: 'wss://backend.example/socia/v1/ws', protocols: ['v12.stomp', `socia-ticket.${'a'.repeat(43)}`] })
   } finally {
     cleanup()
     globalThis.fetch = originalFetch
@@ -184,6 +189,7 @@ test('home integrates bootstrap, friend selection, room creation and REST send w
   }
   globalThis.fetch = async (url, options) => {
     if (url.endsWith('/auth/csrf')) return Response.json({ token: 'csrf-test', headerName: 'X-XSRF-TOKEN' })
+    if (url.endsWith('/auth/ws-ticket')) return Response.json({ ticket: 'a'.repeat(43), url: '/socia/v1/ws' })
     if (url.endsWith('/auth/session')) return Response.json({ authenticated: true, username: 'Alice', serverTime: new Date().toISOString(), expiresAt: new Date(Date.now() + 3600000).toISOString() })
     calls.push({ url, ...options })
     const data = url.endsWith('/bootstrap') ? { me, friends: [friend], conversation: [] }

@@ -19,10 +19,15 @@ public class CookieAuthenticationFilter extends OncePerRequestFilter {
             "/auth/login", "/auth/register", "/auth/csrf", "/auth/logout", "/error");
     private final CustomJwtDecoder decoder;
     private final AuthCookies cookies;
+    private final WebSocketTickets tickets;
+    private final String origin;
 
-    public CookieAuthenticationFilter(CustomJwtDecoder decoder, AuthCookies cookies) {
+    public CookieAuthenticationFilter(CustomJwtDecoder decoder, AuthCookies cookies,
+            WebSocketTickets tickets, String origin) {
         this.decoder = decoder;
         this.cookies = cookies;
+        this.tickets = tickets;
+        this.origin = origin;
     }
 
     @Override
@@ -34,6 +39,27 @@ public class CookieAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        String protocols = request.getHeader("Sec-WebSocket-Protocol");
+        if ("/ws".equals(path) && "GET".equals(request.getMethod())
+                && "websocket".equalsIgnoreCase(request.getHeader("Upgrade"))
+                && protocols != null && protocols.contains(WebSocketTickets.PREFIX)) {
+            var jwt = origin.equals(request.getHeader("Origin"))
+                    ? java.util.Arrays.stream(protocols.split(","))
+                        .map(String::trim).filter(p -> p.startsWith(WebSocketTickets.PREFIX))
+                        .findFirst().map(p -> tickets.consume(p.substring(WebSocketTickets.PREFIX.length())))
+                        .orElse(null)
+                    : null;
+            if (jwt == null) {
+                response.setStatus(401);
+                return;
+            }
+            var context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(new JwtAuthenticationToken(jwt, List.of()));
+            SecurityContextHolder.setContext(context);
+            chain.doFilter(request, response);
+            return;
+        }
         String token = cookies.read(request);
         if (token != null && !token.isBlank()) {
             try {

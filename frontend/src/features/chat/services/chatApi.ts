@@ -35,8 +35,16 @@ export const chatApi: ChatApi = {
   }),
 }
 
-export function websocketUrl() {
-  const url = new URL(`${API_BASE_URL}/ws`, window.location.origin)
+export function websocketUrl(endpoint = `${API_BASE_URL}/ws`) {
+  const url = new URL(endpoint, window.location.origin)
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
   return url.toString()
+}
+
+export async function websocketTicket() {
+  const result = await apiRequest<{ ticket: string; url: string }>('/auth/ws-ticket', { method: 'POST' })
+  if (!result || !/^[A-Za-z0-9_-]{43}$/.test(result.ticket) || typeof result.url !== 'string') {
+    throw new Error('Invalid WebSocket ticket response')
+  }
+  return result
 }
