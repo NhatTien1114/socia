@@ -3,3 +3,9 @@
 /.vscode/
 
 /docs/
+
+/output/
+
+/tmp/
+
+/.env.docker

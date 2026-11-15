@@ -1,0 +1,62 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+    volumes:
+      - socia_mysql:/var/lib/mysql
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 --silent
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  app:
+    image: socia:local
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "10000:10000"
+
+    mem_limit: 512m
+
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: socia
+
+      FRONTEND_ORIGIN: http://localhost:10000
+      AUTH_COOKIE_SECURE: "false"
+
+      SERVER_ADDRESS: 127.0.0.1
+      SERVER_PORT: "8080"
+      SERVER_FORWARD_HEADERS_STRATEGY: native
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "0"
+
+      UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN:-}
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  socia_mysql:
