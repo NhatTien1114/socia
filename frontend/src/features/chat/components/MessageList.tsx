@@ -40,6 +40,16 @@ export function MessageList({ readEnabled = false, onMessagesVisible = ignoreVis
     await onLoadOlder()
   }
 
+  // The list is chronological. Keep each reader on their latest read outgoing message.
+  // Preserve the original receipts for visibility tracking and unread state.
+  const latestReadMessage = new Map<string, string>()
+  for (const message of messages) {
+    if (message.senderId !== currentUserId) continue
+    for (const readerId of message.readByIds ?? []) {
+      if (readerId !== currentUserId) latestReadMessage.set(readerId, message.id)
+    }
+  }
+
   // Group messages by date
   const grouped = groupByDate(messages)
 
@@ -77,6 +87,7 @@ export function MessageList({ readEnabled = false, onMessagesVisible = ignoreVis
                 <MessageBubble
                   participants={participants}
                   message={msg}
+                  visibleReaderIds={(msg.readByIds ?? []).filter(id => latestReadMessage.get(id) === msg.id)}
                   isMine={isMine}
                   showAvatar={showAvatar}
                   senderAvatar={sender?.avatar}

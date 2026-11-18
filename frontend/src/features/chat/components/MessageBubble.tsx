@@ -4,14 +4,15 @@ import { avatarFor } from '../utils/chatView'
 type Props = {
   message: Message
   participants?: User[]
+  visibleReaderIds?: string[]
   isMine: boolean
   showAvatar: boolean
   senderAvatar?: string
   senderName?: string
 }
 
-export function MessageBubble({ message, isMine, participants = [], showAvatar, senderAvatar, senderName }: Props) {
-  const readers = [...new Set((message.readByIds ?? []).filter(id => id !== message.senderId))]
+export function MessageBubble({ message, isMine, participants = [], visibleReaderIds = message.readByIds, showAvatar, senderAvatar, senderName }: Props) {
+  const readers = [...new Set((visibleReaderIds ?? []).filter(id => id !== message.senderId))]
     .map(id => participants.find(user => user.id === id) ?? { id, name: 'Thành viên', avatar: avatarFor('?') })
   return (
     <div className={`flex gap-2.5 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${showAvatar ? 'mt-3' : 'mt-0.5'}`}>
@@ -76,7 +77,7 @@ export function MessageBubble({ message, isMine, participants = [], showAvatar, 
                 alt={`${reader.name} đã xem`} title={`${reader.name} đã xem`}
                 className="size-4 rounded-full object-cover" />)}
             </div>
-          : <span className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-secondary)' }}>Đã gửi</span>)}
+          : !(message.readByIds ?? []).some(id => id !== message.senderId) && <span className="mt-0.5 text-[11px]" style={{ color: 'var(--color-text-secondary)' }}>Đã gửi</span>)}
       </div>
     </div>
   )

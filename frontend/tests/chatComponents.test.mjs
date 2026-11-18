@@ -333,3 +333,24 @@ test('hidden tabs, covered chats and messages outside the viewport are not marke
     else delete document.visibilityState
   }
 })
+
+test('read avatars stay on each readers latest outgoing message across days and updates', () => {
+  const participants = [{ id: 'a', name: 'Alice', avatar: '/a.png' }, { id: 'b', name: 'Bob', avatar: '/b.png' }]
+  const message = (id, date, readByIds) => ({ id, date, readByIds, senderId: 'me', type: 'text', content: id, timestamp: '12:00' })
+  const old = message('old', '2026-11-17', ['a', 'b'])
+  const recent = message('recent', '2026-11-18', ['a', 'a'])
+  const unread = message('unread', '2026-11-18', [])
+  const props = { messages: [old, recent, unread], participants, currentUserId: 'me', loading: false, hasOlder: false, loadingOlder: false, onLoadOlder: async () => {} }
+  const view = render(h(MessageList, props))
+  const images = id => [...view.container.querySelectorAll(`[data-message-id="${id}"] img`)].map(img => img.getAttribute('src'))
+  assert.deepEqual(images('old'), ['/b.png'])
+  assert.deepEqual(images('recent'), ['/a.png'])
+  assert.deepEqual(images('unread'), [])
+  view.rerender(h(MessageList, { ...props, messages: [old, recent, { ...unread, readByIds: ['a', 'b'] }] }))
+  assert.deepEqual(images('old'), [])
+  assert.deepEqual(images('recent'), [])
+  assert.deepEqual(images('unread'), ['/a.png', '/b.png'])
+  view.rerender(h(MessageList, { ...props, messages: [message('older', '2026-11-16', ['a', 'b']), old, recent, { ...unread, readByIds: ['a', 'b'] }] }))
+  assert.deepEqual(images('older'), [])
+  assert.deepEqual(images('unread'), ['/a.png', '/b.png'])
+})
