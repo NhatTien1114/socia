@@ -1,3 +1,4 @@
+import { BrandLoading } from '@/components/Loading'
 import { useState, type FormEvent } from 'react'
 import { register } from '@/features/auth/services/authApi'
 import { APP_ROUTES } from '@/constants/routes'
@@ -37,7 +38,8 @@ export function RegisterForm() {
 
   return (
     <>
-      <form className="grid min-w-0 gap-3" onSubmit={handleSubmit} noValidate>
+      {loading && <BrandLoading overlay label="Đang tạo tài khoản…" />}
+      <form inert={loading} aria-busy={loading} className="grid min-w-0 gap-3" onSubmit={handleSubmit} noValidate>
         <AuthField
           id="register-username"
           name="username"

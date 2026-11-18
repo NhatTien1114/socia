@@ -1,3 +1,4 @@
+import { ListSkeleton } from '@/components/Loading'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { chatApi } from '../services/chatApi'
 import type { ChatUser, GroupConversation } from '../types/chatApi.types'
@@ -76,7 +77,7 @@ export function CreateGroupDialog({ onClose, onCreated }: { onClose: () => void;
           <input aria-label="Tìm bạn bè" value={search} onChange={event => setSearch(event.target.value)} placeholder="Tìm tên hoặc tài khoản…"
             className="mb-3 w-full rounded-xl border px-3 py-2 text-sm" style={inputStyle} />
           <p aria-live="polite" className="mb-2 text-sm font-medium">Đã chọn {selected.length} bạn bè</p>
-          {loading && <p role="status" className="py-4 text-sm">Đang tải bạn bè…</p>}
+          {loading && <ListSkeleton label="Đang tải bạn bè…" />}
           {loadError && <div role="alert" className="py-3 text-sm" style={{ color: 'var(--color-error)' }}>{loadError}
             <button type="button" className="ml-2 underline" onClick={() => { setLoadError(''); setLoading(true); setAttempt(value => value + 1) }}>Tải lại</button>
           </div>}

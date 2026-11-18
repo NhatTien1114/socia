@@ -1,3 +1,4 @@
+import { BrandLoading } from '@/components/Loading'
 import { useState, type FormEvent } from 'react'
 import { login } from '@/features/auth/services/authApi'
 import { APP_ROUTES } from '@/constants/routes'
@@ -33,7 +34,8 @@ export function LoginForm() {
 
   return (
     <>
-      <form className="grid min-w-0 gap-3.5" onSubmit={handleSubmit} noValidate>
+      {loading && <BrandLoading overlay label="Đang đăng nhập…" />}
+      <form inert={loading} aria-busy={loading} className="grid min-w-0 gap-3.5" onSubmit={handleSubmit} noValidate>
         <AuthField
           id="login-username"
           name="username"

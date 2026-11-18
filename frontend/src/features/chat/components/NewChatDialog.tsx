@@ -1,3 +1,4 @@
+import { ListSkeleton } from '@/components/Loading'
 import { useEffect, useRef, useState } from 'react'
 import type { ChatUser } from '../types/chatApi.types'
 import { avatarFor } from '../utils/chatView'
@@ -31,7 +32,7 @@ export function NewChatDialog({ friends, busy, loading, error, onChoose, onClose
       <input autoFocus aria-label="Tìm bạn bè" placeholder="Tìm bạn bè…" value={search} onChange={event => setSearch(event.target.value)}
         className="mb-3 w-full rounded-xl border px-3 py-2 text-sm outline-none" style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg)' }} />
       {error && <p role="alert" className="mb-3 text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>}
-      {loading && <p role="status" className="py-4 text-sm">Đang tải bạn bè…</p>}
+      {loading && <ListSkeleton label="Đang tải bạn bè…" />}
       <div className="max-h-[45dvh] overflow-y-auto">
         {filtered.map(friend => <button key={friend.id} disabled={busy} onClick={() => onChoose(friend.id)}
           className="flex w-full items-center gap-3 rounded-xl p-3 text-left hover:opacity-70 disabled:opacity-40">

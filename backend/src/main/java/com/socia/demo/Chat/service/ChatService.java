@@ -221,7 +221,8 @@ public class ChatService {
                                 MessageSavedResponse.builder()
                                                 .message(response)
                                                 .usernames(room.getParticipants().stream()
-                                                                .map(p -> p.getUser().getUsername()).distinct().toList())
+                                                                .map(p -> p.getUser().getUsername()).distinct()
+                                                                .toList())
                                                 .build());
 
                 return response;
@@ -242,7 +243,8 @@ public class ChatService {
                 return ConversationSummaryResponse.builder()
                                 .id(room.getId())
                                 .friend(room.getConversationType() == ConversationType.DIRECT
-                                                ? userSummary(access.otherMember(room, meId)) : null)
+                                                ? userSummary(access.otherMember(room, meId))
+                                                : null)
                                 .conversationType(room.getConversationType())
                                 .name(room.getName())
                                 .avatar(room.getAvatar())

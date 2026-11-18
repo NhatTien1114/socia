@@ -1097,4 +1097,14 @@
     .scrollbar-dark::-webkit-scrollbar-thumb:hover {
         background: rgba(107, 107, 195, 0.3);
     }
-}
+}.skeleton{background:linear-gradient(100deg,transparent 20%,color-mix(in srgb,var(--color-primary) 12%,transparent) 45%,transparent 70%),var(--color-border);background-size:240% 100%;border-radius:6px;animation:skeleton-shimmer 1.8s ease-in-out infinite}
+.skeleton.rounded-full{border-radius:999px}.skeleton.rounded-2xl{border-radius:16px}.skeleton.rounded-xl{border-radius:12px}
+.brand-loading{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at center,color-mix(in srgb,var(--color-primary) 8%,transparent),transparent 60%),var(--color-bg);color:var(--color-text);text-align:center}
+.brand-loading-overlay{position:fixed;inset:0;z-index:1000}.brand-loading-art{position:relative;display:grid;place-items:center;width:192px;height:192px;margin-bottom:24px}
+.brand-loading-art img{width:100px;height:104px;object-fit:contain;position:relative;filter:drop-shadow(0 16px 24px #5b36ed35);animation:logo-float 3s ease-in-out infinite}
+.brand-loading-halo{position:absolute;inset:25px;border-radius:50%;background:linear-gradient(135deg,#4974ff40,#b659ff30);filter:blur(25px);animation:logo-glow 3s ease-in-out infinite}
+.brand-loading-orbit{position:absolute;inset:0;border-radius:50%;border:1px solid #7974ff25;border-top:2px solid #8572ff;border-right-color:#b56cff80;animation:logo-orbit 3s linear infinite}
+.brand-loading-art i{position:absolute;width:7px;height:7px;background:#b56cff;border-radius:2px;top:28px;right:25px;animation:logo-glow 2s ease-in-out infinite}.brand-loading-art i:last-child{top:auto;right:auto;bottom:24px;left:24px;width:5px;height:5px;background:#648aff;animation-delay:.7s}
+.brand-loading-title{font-size:17px;font-weight:600;letter-spacing:-.3px}.brand-loading-caption{margin-top:9px;font-size:12px;color:var(--color-text-secondary)}.brand-loading-dots{display:flex;gap:7px;margin-top:24px}.brand-loading-dots span{width:5px;height:5px;border-radius:50%;background:#8572ff;animation:logo-glow 1.4s ease-in-out infinite}.brand-loading-dots span:nth-child(2){animation-delay:.2s}.brand-loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes skeleton-shimmer{from{background-position:120% 0}to{background-position:-120% 0}}@keyframes logo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}@keyframes logo-orbit{to{transform:rotate(360deg)}}@keyframes logo-glow{0%,100%{opacity:.4}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.skeleton,.brand-loading-art *,.brand-loading-dots span{animation:none}}

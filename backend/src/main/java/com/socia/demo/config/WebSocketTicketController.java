@@ -20,7 +20,6 @@ public class WebSocketTicketController {
         this.url = base.replaceAll("/+$", "") + contextPath + "/ws";
     }
 
-    // Uses the existing authenticated cookie and CSRF protection through the HTTP proxy.
     @PostMapping("/auth/ws-ticket")
     public Map<String, String> issue(@AuthenticationPrincipal Jwt jwt, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-store");

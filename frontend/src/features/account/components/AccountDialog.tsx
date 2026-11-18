@@ -1,3 +1,4 @@
+import { ProfileSkeleton } from '@/components/Loading'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@/features/chat/types/chat.types'
@@ -119,7 +120,7 @@ export function AccountDialog({ initialView, me, onClose, onSaved }: Props) {
       </div>
       {error && <p role="alert" className="account-notice account-error">{error}</p>}
       {success && <p role="status" className="account-notice account-success"><AccountIcon name="check" />{success}</p>}
-      {loading && <p role="status" className="account-loading">Đang tải hồ sơ…</p>}
+      {loading && <ProfileSkeleton />}
       {!loading && !profile && view === 'profile' && <button className="account-button account-secondary" onClick={() => {
         setError(''); setLoading(true); setAttempt(value => value + 1)
       }}>Tải lại hồ sơ</button>}

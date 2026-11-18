@@ -11,17 +11,24 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
-/** Short-lived, single-use credentials scoped exclusively to the WebSocket handshake. */
 @Component
 public class WebSocketTickets {
     public static final String PREFIX = "socia-ticket.";
-    private record Entry(Jwt jwt, Instant expiresAt) {}
+
+    private record Entry(Jwt jwt, Instant expiresAt) {
+    }
+
     private final Map<String, Entry> tickets = new HashMap<>();
     private final SecureRandom random = new SecureRandom();
     private final Clock clock;
 
-    public WebSocketTickets() { this(Clock.systemUTC()); }
-    WebSocketTickets(Clock clock) { this.clock = clock; }
+    public WebSocketTickets() {
+        this(Clock.systemUTC());
+    }
+
+    WebSocketTickets(Clock clock) {
+        this.clock = clock;
+    }
 
     public synchronized String issue(Jwt jwt) {
         Instant now = clock.instant();
@@ -35,7 +42,8 @@ public class WebSocketTickets {
         random.nextBytes(bytes);
         String ticket = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         Instant expiry = now.plusSeconds(30);
-        if (jwt.getExpiresAt().isBefore(expiry)) expiry = jwt.getExpiresAt();
+        if (jwt.getExpiresAt().isBefore(expiry))
+            expiry = jwt.getExpiresAt();
         tickets.put(ticket, new Entry(jwt, expiry));
         return ticket;
     }

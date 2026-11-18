@@ -1,3 +1,4 @@
+import { ListSkeleton } from '@/components/Loading'
 import { useState } from 'react'
 import type { Conversation } from '@/features/chat/types/chat.types'
 import { ConversationItem } from './ConversationItem'
@@ -90,7 +91,7 @@ export function Sidebar({ conversations, activeId, onSelect, onAddFriend, onNewC
       {/* Conversation list */}
       <button onClick={onCreateGroup} className="mx-4 mb-3 rounded-xl border px-3 py-2 text-sm font-medium" style={{ borderColor: 'var(--color-border)', color: 'var(--color-primary)' }}>+ Tạo nhóm chat</button>
       <div className="scrollbar-thin flex-1 space-y-0.5 overflow-y-auto px-2.5 pb-3">
-        {loading && <p role="status" className="p-4 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Đang tải cuộc trò chuyện…</p>}
+        {loading && <ListSkeleton label="Đang tải cuộc trò chuyện…" />}
         {!loading && filtered.length === 0 && (
           <p className="px-3 py-8 text-center text-[13px]" style={{ color: 'var(--color-text-disabled)' }}>{search ? 'Không tìm thấy cuộc trò chuyện' : 'Chưa có cuộc trò chuyện. Chọn nút viết tin ở trên để nhắn cho bạn bè.'}</p>
         )}

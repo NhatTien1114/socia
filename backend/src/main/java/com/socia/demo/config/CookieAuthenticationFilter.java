@@ -46,9 +46,9 @@ public class CookieAuthenticationFilter extends OncePerRequestFilter {
                 && protocols != null && protocols.contains(WebSocketTickets.PREFIX)) {
             var jwt = origin.equals(request.getHeader("Origin"))
                     ? java.util.Arrays.stream(protocols.split(","))
-                        .map(String::trim).filter(p -> p.startsWith(WebSocketTickets.PREFIX))
-                        .findFirst().map(p -> tickets.consume(p.substring(WebSocketTickets.PREFIX.length())))
-                        .orElse(null)
+                            .map(String::trim).filter(p -> p.startsWith(WebSocketTickets.PREFIX))
+                            .findFirst().map(p -> tickets.consume(p.substring(WebSocketTickets.PREFIX.length())))
+                            .orElse(null)
                     : null;
             if (jwt == null) {
                 response.setStatus(401);

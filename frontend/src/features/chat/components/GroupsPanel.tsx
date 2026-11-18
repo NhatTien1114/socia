@@ -1,3 +1,4 @@
+import { GroupsSkeleton } from '@/components/Loading'
 import { useEffect, useRef, useState } from 'react'
 import { chatApi } from '../services/chatApi'
 import type { GroupConversation } from '../types/chatApi.types'
@@ -50,7 +51,7 @@ export function GroupsPanel({ meId, revision, onCreate }: { meId?: string; revis
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Nhóm của bạn</h1><p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Các nhóm bạn đã tạo hoặc tham gia.</p></div>
       <button onClick={onCreate} className="rounded-xl px-4 py-3 text-sm font-semibold" style={{ background: 'var(--color-primary)', color: '#fff' }}>Tạo nhóm chat</button></div>
     <input aria-label="Tìm nhóm" placeholder="Tìm tên nhóm…" value={search} onChange={event => setSearch(event.target.value)} className="mb-5 w-full rounded-xl border px-4 py-3 text-sm" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }} />
-    {loading && <p role="status">Đang tải nhóm…</p>}
+    {loading && <GroupsSkeleton />}
     {error && <div role="alert" className="mb-4 text-sm" style={{ color: 'var(--color-error)' }}>{error}<button className="ml-3 underline" onClick={() => { setLoading(true); setError(''); setAttempt(value => value + 1) }}>Thử lại</button></div>}
     {!loading && !error && filtered.length === 0 && <p className="py-10 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>{search ? 'Không tìm thấy nhóm phù hợp.' : 'Bạn chưa tham gia nhóm nào. Hãy tạo nhóm cùng bạn bè.'}</p>}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{filtered.map(group => <GroupCard key={group.id} group={group} meId={meId} onSaved={saved => setGroups(items => items.map(item => item.id === saved.id ? saved : item))} />)}</div>

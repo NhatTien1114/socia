@@ -1,3 +1,4 @@
+import { ListSkeleton } from '@/components/Loading'
 import { useState } from 'react'
 import type { UserSearchResult } from '@/features/friends/types/friend.types'
 import { searchUsers, sendFriendRequest } from '@/features/friends/services/friendApi'
@@ -169,18 +170,7 @@ export function AddFriendModal({ open, onClose, onSuccess }: Props) {
         {/* Results area */}
         <div className="scrollbar-thin flex-1 overflow-y-auto px-2.5 py-2">
           {loading && (
-            <div className="flex flex-col items-center py-10">
-              <span
-                className="inline-block size-6 animate-spin rounded-full border-2"
-                style={{
-                  borderColor: 'var(--color-modal-spinner-track)',
-                  borderTopColor: 'var(--color-modal-spinner)',
-                }}
-              />
-              <p className="mt-3 text-[12px]" style={{ color: 'var(--color-modal-empty-text)' }}>
-                Đang tìm kiếm...
-              </p>
-            </div>
+            <ListSkeleton label="Đang tải bạn bè…" />
           )}
 
           {!loading && error && (

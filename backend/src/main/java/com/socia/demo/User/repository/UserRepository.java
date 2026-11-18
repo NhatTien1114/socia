@@ -20,8 +20,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE (LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR u.phone LIKE CONCAT('%', :query, '%')) AND u.id <> :currentUserId")
     List<User> searchUsers(@Param("query") String query, @Param("currentUserId") UUID currentUserId);
 
-    // TiDB versions used by Cloud may reject Hibernate's FOR UPDATE OF <alias>.
-    // Keep the row lock, but use the portable, unqualified locking clause.
     @Query(value = "select * from user where id = :id for update", nativeQuery = true)
     Optional<User> findByIdForUpdate(@Param("id") UUID id);
 }

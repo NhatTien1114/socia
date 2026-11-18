@@ -1,3 +1,4 @@
+import { ListSkeleton } from '@/components/Loading'
 import { useState, useEffect, useCallback, type JSX } from 'react'
 import type { FriendRequest, ContactsMenuTab } from '@/features/friends/types/friend.types'
 import {
@@ -357,18 +358,7 @@ export function FriendsPanel({ onMessage, onFriendsChanged, currentUsername }: P
         </div>}
         <div className="scrollbar-thin flex-1 overflow-y-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <span
-                className="inline-block size-7 animate-spin rounded-full border-2"
-                style={{
-                  borderColor: 'var(--color-friends-spinner-track)',
-                  borderTopColor: 'var(--color-friends-spinner)',
-                }}
-              />
-              <p className="mt-3 text-[13px]" style={{ color: 'var(--color-friends-empty-title)' }}>
-                Đang tải...
-              </p>
-            </div>
+            <ListSkeleton label="Đang tải bạn bè…" />
           ) : menuTab === 'friendList' ? (
             /* ─── Friend list grouped alphabetically ─── */
             filteredFriends.length === 0 ? (

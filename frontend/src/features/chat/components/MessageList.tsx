@@ -1,3 +1,4 @@
+import { MessagesSkeleton } from '@/components/Loading'
 import { useLayoutEffect, useRef } from 'react'
 import type { Message, User } from '@/features/chat/types/chat.types'
 import { formatDate } from '@/utils/date'
@@ -51,7 +52,7 @@ export function MessageList({ readEnabled = false, onMessagesVisible = ignoreVis
         style={{ background: 'var(--color-primary-pale)', color: 'var(--color-primary)' }}>
         {loadingOlder ? 'Đang tải…' : 'Tải tin nhắn cũ hơn'}
       </button>}
-      {loading && <p role="status" className="py-6 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Đang tải tin nhắn…</p>}
+      {loading && <MessagesSkeleton />}
       {!loading && messages.length === 0 && <p className="py-8 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Hãy gửi lời chào đầu tiên 👋</p>}
       {grouped.map(({ date, messages: dayMessages }) => (
         <div key={date}>
