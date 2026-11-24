@@ -249,7 +249,12 @@ public class ChatService {
                                 .name(room.getName())
                                 .avatar(room.getAvatar())
                                 .participants(room.getParticipants().stream()
-                                                .map(p -> userSummary(p.getUser())).toList())
+                                                .map(p -> {
+                                                        UserSummaryResponse member = userSummary(p.getUser());
+                                                        member.setNickname(p.getNickname());
+                                                        return member;
+                                                })
+                                                .toList())
                                 .build();
         }
 

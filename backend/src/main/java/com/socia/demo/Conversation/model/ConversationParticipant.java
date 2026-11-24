@@ -52,6 +52,8 @@ public class ConversationParticipant {
     @Enumerated(EnumType.STRING)
     ParticipantRole role; // ADMIN, MEMBER
 
+    String nickname;
+
     @CreationTimestamp
     @Column(name = "joined_at", updatable = false)
     LocalDateTime joinedAt;

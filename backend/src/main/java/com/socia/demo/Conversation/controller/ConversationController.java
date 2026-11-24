@@ -27,6 +27,8 @@ import com.socia.demo.Chat.dtos.response.ConversationSummaryResponse;
 import com.socia.demo.Chat.service.ChatService;
 import com.socia.demo.Conversation.dtos.request.ConversationGroupRequest;
 import com.socia.demo.Conversation.dtos.response.ConversationResponse;
+import com.socia.demo.Conversation.dtos.response.MemberNicknameResponse;
+import com.socia.demo.Conversation.dtos.request.UpdateNicknameRequest;
 import com.socia.demo.Message.dtos.response.MessagePageResponse;
 import com.socia.demo.Message.dtos.response.MessageResponse;
 import com.socia.demo.Message.dtos.request.MarkMessagesReadRequest;
@@ -118,5 +120,16 @@ public class ConversationController {
             @Valid @RequestBody ConversationGroupRequest request) {
 
         return conversationService.createGroup(jwt.getSubject(), request, null);
+    }
+
+    @PutMapping("/groups/{groupId}/members/{userId}/nickname")
+    public MemberNicknameResponse updateNickname(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateNicknameRequest request) {
+
+        return conversationService.updateNickname(
+                jwt.getSubject(), groupId, userId, request.nickname());
     }
 }

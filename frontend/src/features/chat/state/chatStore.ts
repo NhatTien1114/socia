@@ -109,6 +109,18 @@ export class ChatStore {
   }
   clearError = () => this.update({ error: '' })
   updateMe = (me: ChatUser) => this.update({ me })
+  updateNickname = async (groupId: string, userId: string, nickname: string) => {
+    const run = this.run
+    const saved = await this.api.updateNickname(groupId, userId, nickname)
+    if (!this.alive || this.state.expired || run !== this.run) return
+    this.update({ rooms: this.state.rooms.map(room => {
+      if (room.id !== saved.groupId || room.conversationType !== 'GROUP') return room
+      return { ...room, participants: room.participants.map(member =>
+        member.id === saved.userId ? { ...member, nickname: saved.nickname } : member) }
+    }) })
+    // Start a newer bootstrap so an older snapshot cannot undo this edit.
+    void this.refresh()
+  }
   connection = (connection: ChatState['connection']) => {
     if (!this.alive) return
     this.presenceGeneration++

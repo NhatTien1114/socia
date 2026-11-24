@@ -41,6 +41,11 @@ test('home lists groups beside direct chats and opens group history, info and co
     if (url.endsWith('/auth/ws-ticket')) return Response.json({ ticket: 'a'.repeat(43), url: 'https://backend.example/socia/v1/ws' })
     if (url.endsWith('/auth/session')) return Response.json({ authenticated: true, username: 'Alice', serverTime: new Date().toISOString(), expiresAt: new Date(Date.now() + 3600000).toISOString() })
     if (url.endsWith('/bootstrap')) return Response.json({ me, friends: [friend], conversation: [{ id: 'direct', friend }, group] })
+    if (options.method === 'PUT' && url.endsWith('/groups/group/members/friend/nickname')) {
+      const nickname = JSON.parse(options.body).nickname.trim() || null
+      group.participants = group.participants.map(member => member.id === friend.id ? { ...member, nickname } : member)
+      return Response.json({ groupId: group.id, userId: friend.id, nickname })
+    }
     if (options.method === 'POST') {
       sent.push(url)
       return Response.json({ id: 'sent', conversationId: group.id, senderId: me.id, content: JSON.parse(options.body).content, createdAt: '2026-10-18T12:01:00' })
@@ -58,6 +63,18 @@ test('home lists groups beside direct chats and opens group history, info and co
     assert.ok(screen.getByRole('button', { name: /Bob/ }))
     await user.click(screen.getByTitle('Thông tin'))
     assert.ok(within(screen.getByLabelText('Thông tin cuộc trò chuyện')).getByText('Study group'))
+    await user.click(screen.getByRole('button', { name: 'Chỉnh sửa biệt danh' }))
+    const dialog = within(screen.getByRole('dialog', { name: 'Biệt danh' }))
+    assert.ok(dialog.getByRole('button', { name: 'Sửa biệt danh của Alice' }))
+    await user.click(dialog.getByRole('button', { name: 'Sửa biệt danh của Bob' }))
+    await user.type(dialog.getByRole('textbox'), 'Đội trưởng{Enter}')
+    assert.ok(await dialog.findByText('Đội trưởng'))
+    assert.ok(within(chat).getByText('Đội trưởng'))
+    await user.click(dialog.getByRole('button', { name: 'Sửa biệt danh của Bob' }))
+    await user.clear(dialog.getByRole('textbox'))
+    await user.click(dialog.getByRole('button', { name: 'Lưu biệt danh' }))
+    await waitFor(() => assert.equal(dialog.queryByText('Đội trưởng'), null))
+    await user.click(dialog.getByRole('button', { name: 'Đóng biệt danh' }))
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn' }), 'Hello group')
     await user.click(screen.getByRole('button', { name: 'Gửi' }))
     await waitFor(() => assert.ok(within(chat).getByText('Hello group')))

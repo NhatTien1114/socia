@@ -18,5 +18,6 @@ public class UserSummaryResponse {
     UUID id;
     String username;
     String displayName;
+    String nickname;
     String avatar;
 }

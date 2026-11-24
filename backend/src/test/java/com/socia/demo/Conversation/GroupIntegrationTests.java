@@ -117,6 +117,25 @@ class GroupIntegrationTests {
             .andExpect(status().isForbidden());
     }
 
+    @Test void memberCanSetAndClearGroupNickname() throws Exception {
+        var group = service.createGroup(me.getUsername(), request(), null);
+        var path = "/conversations/groups/" + group.getId() + "/members/" + second.getId() + "/nickname";
+        var member = jwt().jwt(j -> j.subject(first.getUsername()));
+        mvc.perform(put(path).with(member).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nickname\":\"  Captain  \"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nickname").value("Captain"))
+                .andExpect(jsonPath("$.userId").value(second.getId().toString()));
+        mvc.perform(get("/conversations/bootstrap").with(member))
+                .andExpect(jsonPath("$.conversation[0].participants[?(@.nickname == 'Captain')].id")
+                        .value(org.hamcrest.Matchers.contains(second.getId().toString())));
+        mvc.perform(put(path).with(member).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put(path).with(jwt().jwt(j -> j.subject(outsider.getUsername()))).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"nickname\":\"\"}")).andExpect(status().isForbidden());
+        mvc.perform(put(path).with(member).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nickname\":\"\"}")).andExpect(status().isOk()).andExpect(jsonPath("$.nickname").isEmpty());
+    }
+
     @Test void onlyGroupAdminCanChangeAvatar() throws Exception {
         var group = service.createGroup(me.getUsername(), request(), null);
         for (User denied : List.of(first, outsider)) {

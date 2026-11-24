@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { Client } from '@stomp/stompjs'
 import { ApiError, SESSION_EXPIRED_EVENT, notifySessionExpired } from '@/lib/api'
 import { getSession } from '@/features/auth/services/authApi'
@@ -7,7 +7,8 @@ import { ChatStore } from '../state/chatStore'
 import type { ChatMessage, ReadReceiptBatch, Presence } from '../types/chatApi.types'
 
 export function useChat() {
-  const [store] = useState(() => new ChatStore(chatApi))
+  // Fast Refresh recreates memoized values when the store implementation changes.
+  const store = useMemo(() => new ChatStore(chatApi), [])
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot)
   useEffect(() => {
     store.start()

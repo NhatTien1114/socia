@@ -9,8 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.socia.demo.Common.Common;
+import com.socia.demo.Common.ConversationAccess;
 import com.socia.demo.Conversation.dtos.request.ConversationGroupRequest;
 import com.socia.demo.Conversation.dtos.response.ConversationResponse;
+import com.socia.demo.Conversation.dtos.response.MemberNicknameResponse;
 import com.socia.demo.Conversation.mapper.ConversationMapper;
 import com.socia.demo.Conversation.model.Conversation;
 import com.socia.demo.Conversation.model.ConversationParticipant;
@@ -29,6 +31,7 @@ public class ConversationService {
     private final ConversationRepository conversations;
     private final ConversationMapper mapper;
     private final UserRepository users;
+    private final ConversationAccess access;
     private final UploadThingStorage storage;
     private final Common common;
 
@@ -89,5 +92,27 @@ public class ConversationService {
             throw Common.error(HttpStatus.FORBIDDEN, "Chỉ quản trị viên nhóm được đổi ảnh đại diện.");
         group.setAvatar(storage.upload(avatar));
         return mapper.toResponse(conversations.saveAndFlush(group));
+    }
+
+    @Transactional
+    public MemberNicknameResponse updateNickname(String username, UUID groupId, UUID targetUserId, String rawNickname) {
+        User me = common.requireUser(username);
+        Conversation room = access.requireRoom(groupId, me.getId());
+
+        if (room.getConversationType() != ConversationType.GROUP)
+            throw Common.error(HttpStatus.BAD_REQUEST, "Đây không phải cuộc trò chuyện nhóm.");
+
+        ConversationParticipant target = room.getParticipants().stream()
+                .filter(p -> p.getUser().getId().equals(targetUserId))
+                .findFirst()
+                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND, "Không tìm thấy thành viên trong nhóm."));
+
+        String nickname = rawNickname.strip();
+        if (nickname.length() > 50) {
+            throw Common.error(HttpStatus.BAD_REQUEST, "Biệt danh cần từ 0 đến 50 ký tự.");
+        }
+
+        target.setNickname(nickname.isEmpty() ? null : nickname);
+        return new MemberNicknameResponse(groupId, targetUserId, target.getNickname());
     }
 }

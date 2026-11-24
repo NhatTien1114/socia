@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AccountDialog } from '@/features/account/components/AccountDialog'
 import type { AccountView } from '@/features/account/components/AvatarMenu'
 import type { Conversation, NavTab } from '@/features/chat/types/chat.types'
+import type { ChatUser } from '@/features/chat/types/chatApi.types'
 import { NavBar } from '@/features/chat/components/NavBar'
 import { Sidebar } from '@/features/chat/components/Sidebar'
 import { ChatArea } from '@/features/chat/components/ChatArea'
@@ -32,10 +33,14 @@ export function HomePage() {
     const first = state.latest[a.id], second = state.latest[b.id]
     return first && second ? compareMessages(second, first) : first ? -1 : second ? 1 : 0
   })
+  function groupUser(member: ChatUser) {
+    const user = toUser(member, state.presenceByUserId[member.id])
+    return { ...user, name: member.nickname || user.name }
+  }
   const conversations: Conversation[] = rooms.map(room => ({
     id: room.id,
     participants: room.conversationType === 'GROUP'
-      ? room.participants.filter(user => user.id !== state.me?.id).map(user => toUser(user, state.presenceByUserId[user.id])) : [toUser(room.friend, state.presenceByUserId[room.friend.id])],
+      ? room.participants.filter(user => user.id !== state.me?.id).map(groupUser) : [toUser(room.friend, state.presenceByUserId[room.friend.id])],
     isGroup: room.conversationType === 'GROUP',
     groupName: room.conversationType === 'GROUP' ? room.name : undefined,
     groupAvatar: room.conversationType === 'GROUP' ? room.avatar ?? undefined : undefined,
@@ -45,6 +50,8 @@ export function HomePage() {
     messages: (state.histories[room.id]?.items ?? []).map(toMessage),
   }))
   const active = conversations.find(room => room.id === state.activeId)
+  const activeRoom = rooms.find(room => room.id === state.activeId)
+  const groupMembers = activeRoom?.conversationType === 'GROUP' ? activeRoom.participants : []
 
   function navigate(tab: NavTab) {
     setActiveTab(tab)
@@ -101,7 +108,9 @@ export function HomePage() {
                 onSend={text => store.send(active.id, text)} onLoadOlder={() => store.loadOlder(active.id)}
                 onRetry={() => void (state.histories[active.id]?.nextBefore ? store.loadOlder(active.id) : store.loadHistory(active.id))} />
                 : <div className="hidden min-w-0 flex-1 md:flex" style={{ background: 'var(--color-chat-bg)' }}><EmptyState /></div>}
-              {active && showInfo && <InfoPanel conversation={active} onClose={() => setShowInfo(false)} />}
+              {active && showInfo && <InfoPanel key={`info-${active.id}`} conversation={active} members={groupMembers}
+                onNickname={(userId, nickname) => store.updateNickname(active.id, userId, nickname)}
+                onClose={() => setShowInfo(false)} />}
             </>}
         </div>
       </div>
