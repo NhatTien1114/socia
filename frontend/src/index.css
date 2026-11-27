@@ -1,6 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+.composer-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: clamp(1.8rem, 5vw, 2.25rem);
+    height: 2.25rem;
+    border-radius: .65rem;
+    color: var(--color-input-attach-active);
+    cursor: pointer;
+}
+.composer-icon:hover, .composer-icon:focus-within {
+    background-color: var(--color-input-icon-hover-bg);
+    color: var(--color-input-icon-hover);
+}
+.composer-icon:disabled, .composer-icon:has(input:disabled) {
+    background: transparent;
+    color: var(--color-input-icon);
+    opacity: .65;
+    cursor: not-allowed;
+}
+
 /* Account menu and centered profile cards share the application's theme. */
 
 .account-avatar-trigger {

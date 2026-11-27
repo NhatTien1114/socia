@@ -13,7 +13,7 @@ type Props = {
   disabled: boolean
   onToggleInfo: () => void
   onBack: () => void
-  onSend: (text: string) => Promise<void>
+  onSend: (text: string, image?: File) => Promise<void>
   onLoadOlder: () => Promise<void>
   onRetry: () => void
 }

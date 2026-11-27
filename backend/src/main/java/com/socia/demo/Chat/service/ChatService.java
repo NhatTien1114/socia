@@ -34,6 +34,10 @@ import com.socia.demo.User.model.User;
 import com.socia.demo.User.repository.FriendRequestRepository;
 import com.socia.demo.User.repository.UserRepository;
 
+import org.springframework.web.multipart.MultipartFile;
+import com.socia.demo.Common.ImageNormalizer;
+import com.socia.demo.Message.model.MessageImage;
+import com.socia.demo.Message.repository.MessageImageRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -45,6 +49,7 @@ public class ChatService {
         private final FriendRequestRepository friendships;
         private final ConversationRepository conversations;
         private final MessageRepository messages;
+        private final MessageImageRepository images;
         private final ApplicationEventPublisher events;
         private final Common common;
         private final ConversationAccess access;
@@ -193,12 +198,7 @@ public class ChatService {
                         UUID conversationId,
                         String rawContent) {
                 User me = common.requireUser(username);
-                Conversation room = access.requireRoom(conversationId, me.getId());
-                if (room.getConversationType() == ConversationType.DIRECT) {
-                        User friend = access.otherMember(room, me.getId());
-                        common.requireFriendship(me.getId(), friend.getId());
-                }
-
+                Conversation room = writableRoom(conversationId, me);
                 String content = rawContent == null ? "" : rawContent.strip();
 
                 if (content.isBlank() || content.length() > 2000) {
@@ -207,14 +207,48 @@ public class ChatService {
                                         "Tin nhắn phải có từ 1 đến 2000 ký tự.");
                 }
 
+                return saveMessage(me, room, content, null);
+        }
+
+        @Transactional
+        public MessageResponse sendImage(String username, UUID conversationId, MultipartFile file, String caption) {
+                User me = common.requireUser(username);
+                Conversation room = writableRoom(conversationId, me);
+                String content = caption.strip();
+                if (content.length() > 2000) {
+                        throw Common.error(HttpStatus.BAD_REQUEST, "Chú thích tối đa 2000 ký tự.");
+                }
+                return saveMessage(me, room, content, ImageNormalizer.toPng(file, 1280));
+        }
+
+        public byte[] image(String username, UUID conversationId, UUID messageId) {
+                access.requireRoom(conversationId, common.requireUser(username).getId());
+                return images.findByIdAndMessage_Conversation_Id(messageId, conversationId)
+                                .orElseThrow(() -> Common.error(HttpStatus.NOT_FOUND, "Không tìm thấy ảnh."))
+                                .getData();
+        }
+
+        private Conversation writableRoom(UUID conversationId, User me) {
+                Conversation room = access.requireRoom(conversationId, me.getId());
+                if (room.getConversationType() == ConversationType.DIRECT) {
+                        User friend = access.otherMember(room, me.getId());
+                        common.requireFriendship(me.getId(), friend.getId());
+                }
+                return room;
+        }
+
+        private MessageResponse saveMessage(User me, Conversation room, String content, byte[] image) {
                 Message saved = messages.saveAndFlush(
                                 Message.builder()
                                                 .conversation(room)
                                                 .sender(me)
                                                 .content(content)
-                                                .messageType(MessageType.TEXT)
+                                                .messageType(image == null ? MessageType.TEXT : MessageType.IMAGE)
                                                 .build());
 
+                if (image != null) {
+                        images.save(new MessageImage(saved, image));
+                }
                 MessageResponse response = messageResponse(saved);
 
                 events.publishEvent(
@@ -263,6 +297,7 @@ public class ChatService {
                                 .id(message.getId())
                                 .conversationId(message.getConversation().getId())
                                 .senderId(message.getSender().getId())
+                                .messageType(message.getMessageType())
                                 .content(message.getContent())
                                 .createdAt(message.getCreatedAt())
                                 .build();

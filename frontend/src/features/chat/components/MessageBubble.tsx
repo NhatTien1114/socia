@@ -31,8 +31,12 @@ export function MessageBubble({ message, isMine, participants = [], visibleReade
           </span>
         )}
 
-        <div
-          className={`overflow-hidden rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed ${
+        {message.type === 'image' && (
+          <img src={message.imageUrl} alt="Ảnh trong cuộc trò chuyện"
+            className="block max-h-[240px] max-w-full rounded-xl object-contain" />
+        )}
+        {(message.type !== 'image' || message.content) && <div
+          className={`max-w-full overflow-hidden rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed ${message.type === 'image' ? 'mt-1' : ''} ${
             isMine ? 'rounded-tr-md text-white' : 'rounded-tl-md'
           }`}
           style={
@@ -50,20 +54,12 @@ export function MessageBubble({ message, isMine, participants = [], visibleReade
                 }
           }
         >
-          {message.type === 'text' && <p className="m-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.content}</p>}
-
-          {message.type === 'image' && (
-            <img
-              src={message.content}
-              alt="Shared image"
-              className="-m-1 block max-h-[240px] w-full rounded-xl object-cover"
-            />
-          )}
+          {(message.type === 'text' || message.type === 'image') && <p className="m-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.content}</p>}
 
           {message.type === 'voice' && <VoiceMessage duration={message.voiceDuration ?? 0} isMine={isMine} />}
 
           {message.type === 'file' && <FileAttachment name={message.content} size={message.fileSize ?? ''} isMine={isMine} />}
-        </div>
+        </div>}
 
         <span
           className={`mt-1 text-[10.5px] ${isMine ? 'mr-1 text-right' : 'ml-1'}`}

@@ -4,7 +4,6 @@ export function BrandLoading({ label = 'Đang kết nối Socia…', overlay = f
   return <div className={`brand-loading ${overlay ? 'brand-loading-overlay' : ''}`} role="status" aria-live="polite">
     <div className="brand-loading-art" aria-hidden="true"><span className="brand-loading-halo" /><span className="brand-loading-orbit" /><img src="/Socia_Logo.png" alt="" /><i /><i /></div>
     <p className="brand-loading-title">{label}</p>
-    <p className="brand-loading-caption">Kết nối những điều ý nghĩa</p>
     <div className="brand-loading-dots" aria-hidden="true"><span /><span /><span /></div>
   </div>
 }

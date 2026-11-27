@@ -72,6 +72,37 @@ class ReadPresenceIntegrationTests {
         }
 
         @Test
+        void imageUploadPublishesRestoresAndProtectsTheImage() throws Exception {
+                var bytes = new java.io.ByteArrayOutputStream();
+                javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(3, 2,
+                                java.awt.image.BufferedImage.TYPE_INT_RGB), "png", bytes);
+                var file = new org.springframework.mock.web.MockMultipartFile("image", "photo.png", "image/png",
+                                bytes.toByteArray());
+                String path = "/conversations/" + room + "/messages";
+                mvc.perform(multipart(path + "/image").file(file)
+                                .with(jwt().jwt(j -> j.subject(alice.getUsername()))).with(csrf()))
+                                .andExpect(status().isOk()).andExpect(jsonPath("$.messageType").value("IMAGE"))
+                                .andExpect(jsonPath("$.content").value(""));
+                var latest = chat.history(bob.getUsername(), room, null, 30).getItems().stream()
+                                .filter(m -> m.getMessageType() == com.socia.demo.Enum.MessageType.IMAGE)
+                                .findFirst().orElseThrow();
+                verify(publisher).send(argThat(names -> names.containsAll(List.of(alice.getUsername(), bob.getUsername()))),
+                                eq("/queue/messages"), argThat(event -> event instanceof com.socia.demo.Message.dtos.response.MessageResponse m
+                                                && m.getId().equals(latest.getId()) && m.getMessageType() == latest.getMessageType()));
+                String imagePath = path + "/" + latest.getId() + "/image";
+                var result = mvc.perform(get(imagePath).with(jwt().jwt(j -> j.subject(bob.getUsername()))))
+                                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.IMAGE_PNG))
+                                .andReturn();
+                assertThat(javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(
+                                result.getResponse().getContentAsByteArray())).getWidth()).isEqualTo(3);
+                mvc.perform(get(imagePath).with(jwt().jwt(j -> j.subject(outsider.getUsername()))))
+                                .andExpect(status().isForbidden());
+                mvc.perform(multipart(path + "/image").file(file)
+                                .with(jwt().jwt(j -> j.subject(outsider.getUsername()))).with(csrf()))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
         void openingDirectFromEitherSideReusesTheRoomAndBothParticipants() {
                 var fromAlice = chat.openDirect(alice.getUsername(), bob.getId());
                 var fromBob = chat.openDirect(bob.getUsername(), alice.getId());

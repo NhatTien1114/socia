@@ -304,13 +304,13 @@ export class ChatStore {
       }
     }
   }
-  send = async (id: string, content: string) => {
+  send = async (id: string, content: string, image?: File) => {
     const text = content.trim()
-    if (!text || text.length > 2000) throw new Error('Tin nhắn phải có từ 1 đến 2000 ký tự.')
+    if ((!image && !text) || text.length > 2000) throw new Error('Tin nhắn phải có từ 1 đến 2000 ký tự.')
     if (this.state.expired) throw new Error('Vui lòng đăng nhập lại để gửi tin nhắn.')
     const run = this.run
     try {
-      const message = await this.api.send(id, text)
+      const message = await this.api.send(id, text, image)
       if (this.alive && run === this.run) this.receive(message)
     } catch (error) {
       if (this.alive && run === this.run) this.failed(error)

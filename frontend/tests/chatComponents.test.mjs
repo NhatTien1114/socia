@@ -88,6 +88,17 @@ test('home lists groups beside direct chats and opens group history, info and co
   }
 })
 
+test('an image can be previewed and sent without text', async () => {
+  const calls = []
+  const image = new File(['test'], 'photo.png', { type: 'image/png' })
+  render(h(MessageInput, { onSend: async (...args) => calls.push(args) }))
+  fireEvent.change(screen.getByLabelText('Chọn ảnh'), { target: { files: [image] } })
+  assert.ok(await screen.findByAltText('Ảnh chuẩn bị gửi'))
+  fireEvent.click(screen.getByRole('button', { name: 'Gửi' }))
+  await waitFor(() => assert.ok(!screen.queryByAltText('Ảnh chuẩn bị gửi')))
+  assert.deepEqual(calls, [['', image]])
+})
+
 test('Enter sends once and clears the composer only after success', async () => {
   const calls = []
   let complete

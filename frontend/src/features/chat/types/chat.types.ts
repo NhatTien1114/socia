@@ -15,6 +15,7 @@ export type Message = {
   readByIds: string[]
   type: MessageType
   content: string // text | image URL | voice duration | file name
+  imageUrl?: string
   fileSize?: string // for file type
   voiceDuration?: number // seconds, for voice type
   timestamp: string // HH:mm

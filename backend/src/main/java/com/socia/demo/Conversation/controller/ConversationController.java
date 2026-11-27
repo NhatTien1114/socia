@@ -3,6 +3,8 @@ package com.socia.demo.Conversation.controller;
 import java.util.UUID;
 import java.util.List;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,6 +94,19 @@ public class ConversationController {
                 jwt.getSubject(),
                 conversationId,
                 request.getContent());
+    }
+
+    @PostMapping(value = "/{conversationId}/messages/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public MessageResponse sendImage(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID conversationId,
+            @RequestPart("image") MultipartFile image, @RequestParam(defaultValue = "") String caption) {
+        return chatService.sendImage(jwt.getSubject(), conversationId, image, caption);
+    }
+
+    @GetMapping(value = "/{conversationId}/messages/{messageId}/image", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> image(@AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID conversationId, @PathVariable UUID messageId) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .contentType(MediaType.IMAGE_PNG).body(chatService.image(jwt.getSubject(), conversationId, messageId));
     }
 
     @GetMapping("/groups")

@@ -1,8 +1,5 @@
 package com.socia.demo.User.service;
 
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,9 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import javax.imageio.ImageIO;
+import com.socia.demo.Common.ImageNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -24,7 +20,6 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class UploadThingStorage {
-    private static final long MAX_SIZE = 4 * 1024 * 1024;
     private final ObjectMapper json;
     private final String token;
     private final HttpClient http;
@@ -101,37 +96,7 @@ public class UploadThingStorage {
         return new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Không thể tải ảnh lên. Vui lòng thử lại.");
     }
 
-    // Read dimensions before decoding; resize and re-encode to strip metadata and embedded content.
     static byte[] normalizeImage(MultipartFile file) {
-        if (file.isEmpty() || file.getSize() > MAX_SIZE)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ảnh cần có dung lượng từ 1 byte đến 4 MB.");
-        if (!Set.of("image/jpeg", "image/png").contains(String.valueOf(file.getContentType())))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vui lòng chọn ảnh JPG hoặc PNG.");
-        try (var source = file.getInputStream(); var input = ImageIO.createImageInputStream(source)) {
-            var readers = ImageIO.getImageReaders(input);
-            if (!readers.hasNext()) throw new IllegalArgumentException();
-            var reader = readers.next();
-            try {
-                if (!Set.of("JPEG", "PNG").contains(reader.getFormatName().toUpperCase(java.util.Locale.ROOT)))
-                    throw new IllegalArgumentException();
-                reader.setInput(input);
-                int width = reader.getWidth(0), height = reader.getHeight(0);
-                if (width < 1 || height < 1 || (long) width * height > 16_000_000) throw new IllegalArgumentException();
-                BufferedImage original = reader.read(0);
-                double scale = Math.min(1.0, 512.0 / Math.max(width, height));
-                BufferedImage output = new BufferedImage(Math.max(1, (int) (width * scale)),
-                        Math.max(1, (int) (height * scale)), BufferedImage.TYPE_INT_ARGB);
-                var graphics = output.createGraphics();
-                try {
-                    graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                    graphics.drawImage(original, 0, 0, output.getWidth(), output.getHeight(), null);
-                } finally { graphics.dispose(); }
-                var bytes = new ByteArrayOutputStream();
-                ImageIO.write(output, "png", bytes);
-                return bytes.toByteArray();
-            } finally { reader.dispose(); }
-        } catch (Exception exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ảnh không hợp lệ hoặc vượt quá 16 triệu điểm ảnh.");
-        }
+        return ImageNormalizer.toPng(file, 512);
     }
 }

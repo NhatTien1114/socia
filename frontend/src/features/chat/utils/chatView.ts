@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/lib/api'
 import type { ChatMessage, ChatUser, Presence } from '../types/chatApi.types'
 import type { Message, User } from '../types/chat.types'
 
@@ -14,7 +15,11 @@ export function toMessage(message: ChatMessage): Message {
   // LocalDateTime has no timezone: preserve the backend's wall-clock time.
   return {
     readByIds: [...new Set((message.reads ?? []).map(read => read.readerId))],
-    id: message.id, senderId: message.senderId, type: 'text', content: message.content,
+    id: message.id, senderId: message.senderId, type: message.messageType === 'IMAGE' ? 'image' : 'text',
+    content: message.content,
+    imageUrl: message.messageType === 'IMAGE'
+      ? `${API_BASE_URL}/conversations/${message.conversationId}/messages/${message.id}/image`
+      : undefined,
     date: message.createdAt.slice(0, 10), timestamp: message.createdAt.slice(11, 16),
   }
 }

@@ -33,9 +33,17 @@ export const chatApi: ChatApi = {
     if (before) query.set('before', before)
     return apiRequest(`/conversations/${id}/messages?${query}`)
   },
-  send: (id, content) => apiRequest(`/conversations/${id}/messages`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }),
-  }),
+  send: (id, content, image) => {
+    if (image) {
+      const body = new FormData()
+      body.append('image', image)
+      body.append('caption', content)
+      return apiRequest(`/conversations/${id}/messages/image`, { method: 'POST', body, timeoutMs: 90000 })
+    }
+    return apiRequest(`/conversations/${id}/messages`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }),
+    })
+  },
 }
 
 export function websocketUrl(endpoint = `${API_BASE_URL}/ws`) {

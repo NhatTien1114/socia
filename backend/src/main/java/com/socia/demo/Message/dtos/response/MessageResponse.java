@@ -3,6 +3,7 @@ package com.socia.demo.Message.dtos.response;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.socia.demo.Enum.MessageType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class MessageResponse {
     UUID id;
     UUID conversationId;
     UUID senderId;
+    MessageType messageType;
     String content;
     LocalDateTime createdAt;
 }

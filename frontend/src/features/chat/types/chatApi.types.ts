@@ -17,6 +17,7 @@ export type MessageRead = { readerId: string; readAt: string }
 export type ReadReceiptBatch = { conversationId: string; reads: (MessageRead & { messageId: string })[] }
 export type Presence = { userId: string; online: boolean; lastSeenAt: string | null; epoch: string; version: number }
 export type ChatMessage = {
+  messageType?: 'TEXT' | 'IMAGE'
   reads: MessageRead[]
   id: string
   conversationId: string
@@ -37,5 +38,5 @@ export type ChatApi = {
   bootstrap: () => Promise<ChatBootstrap>
   open: (friendId: string) => Promise<ChatRoom>
   history: (id: string, before?: string | null, limit?: number) => Promise<MessagePage>
-  send: (id: string, content: string) => Promise<ChatMessage>
+  send: (id: string, content: string, image?: File) => Promise<ChatMessage>
 }

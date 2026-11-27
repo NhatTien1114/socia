@@ -44,7 +44,7 @@ export function HomePage() {
     isGroup: room.conversationType === 'GROUP',
     groupName: room.conversationType === 'GROUP' ? room.name : undefined,
     groupAvatar: room.conversationType === 'GROUP' ? room.avatar ?? undefined : undefined,
-    lastMessage: state.latest[room.id]?.content ?? 'Bắt đầu cuộc trò chuyện',
+    lastMessage: state.latest[room.id]?.content || (state.latest[room.id]?.messageType === 'IMAGE' ? 'Ảnh' : 'Bắt đầu cuộc trò chuyện'),
     lastMessageTime: state.latest[room.id]?.createdAt.slice(11, 16) ?? '',
     unread: state.unread[room.id] ?? 0,
     messages: (state.histories[room.id]?.items ?? []).map(toMessage),
@@ -105,7 +105,7 @@ export function HomePage() {
                 readEnabled={!state.expired && !showInfo && !showCreateGroup && !showNewChat && !showAddFriend && !accountView}
                 history={state.histories[active.id] ?? emptyHistory()} disabled={state.expired}
                 onToggleInfo={() => setShowInfo(value => !value)} onBack={() => store.select(null)}
-                onSend={text => store.send(active.id, text)} onLoadOlder={() => store.loadOlder(active.id)}
+                onSend={(text, image) => store.send(active.id, text, image)} onLoadOlder={() => store.loadOlder(active.id)}
                 onRetry={() => void (state.histories[active.id]?.nextBefore ? store.loadOlder(active.id) : store.loadHistory(active.id))} />
                 : <div className="hidden min-w-0 flex-1 md:flex" style={{ background: 'var(--color-chat-bg)' }}><EmptyState /></div>}
               {active && showInfo && <InfoPanel key={`info-${active.id}`} conversation={active} members={groupMembers}
